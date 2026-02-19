@@ -12,9 +12,18 @@
 - Show a move log panel (e.g., "Sheep placed at C3", "Kitty D1 captured Sheep at C2")
 - Allow replaying a finished game move by move
 
-### Repetition Detection
-- Track board positions to detect draw-by-repetition (prevents infinite loops between experienced players)
-- Optional "no repeat" rule toggle in settings
+### Position Repetition Rule (Official BaghChal Rule — Not Yet Implemented)
+- **Rule**: After all 20 sheeps are placed, no move may return the board to a
+  configuration that has already occurred during the game
+- **Effect**: Such moves are **ILLEGAL** (excluded from valid moves), not losing moves
+- **Applies to**: Both sheeps and kittens equally
+- **Phase**: Only during MOVEMENT phase (not during PLACEMENT phase)
+- **Implementation approach**: Track a `Set<string>` of board state hashes. In
+  `getValidMovesForPiece()`, filter out moves that would produce a previously-seen hash.
+  Add `boardHistory: Set<string>` to `GameState`.
+- **Note**: This is the **only** official BaghChal rule not currently implemented.
+  There is no official "N moves without capture = draw" rule in standard BaghChal.
+- Optional "no repeat" rule toggle in settings (since some casual players may not want this)
 
 ### Tutorial Mode
 - Interactive step-by-step tutorial teaching the rules
