@@ -2,6 +2,13 @@ export type Piece = 'EMPTY' | 'KITTY' | 'SHEEP';
 export type Turn = 'SHEEP' | 'KITTY';
 export type Phase = 'PLACEMENT' | 'MOVEMENT';
 export type Position = [number, number];
+export type GameMode = 'local' | 'ai-sheep' | 'ai-kitty';
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
+export interface GameConfig {
+  mode: GameMode;
+  difficulty: Difficulty;
+}
 
 export interface GameMove {
   type: 'place' | 'move' | 'capture';
@@ -116,7 +123,7 @@ export function createInitialState(): GameState {
   };
 }
 
-function getValidMovesForPiece(board: Piece[][], r: number, c: number, piece: Piece): Position[] {
+export function getValidMovesForPiece(board: Piece[][], r: number, c: number, piece: Piece): Position[] {
   const moves: Position[] = [];
   const neighbors = getNeighbors(r, c);
   for (const [nr, nc] of neighbors) {
@@ -325,6 +332,56 @@ export function handleTap(state: GameState, row: number, col: number): GameState
   }
 
   return state;
+}
+
+export function applyMove(state: GameState, move: GameMove): GameState {
+  const newBoard = state.board.map(r => [...r]);
+  let newSheepPlaced = state.sheepPlaced;
+  let newSheepCaptured = state.sheepCaptured;
+  let newPhase = state.phase;
+  let nextTurn: Turn;
+
+  if (move.type === 'place') {
+    newBoard[move.to[0]][move.to[1]] = 'SHEEP';
+    newSheepPlaced++;
+    newPhase = newSheepPlaced >= TOTAL_SHEEP ? 'MOVEMENT' : 'PLACEMENT';
+    nextTurn = 'KITTY';
+  } else if (move.type === 'move') {
+    const [fr, fc] = move.from!;
+    const piece = newBoard[fr][fc];
+    newBoard[move.to[0]][move.to[1]] = piece;
+    newBoard[fr][fc] = 'EMPTY';
+    nextTurn = state.turn === 'SHEEP' ? 'KITTY' : 'SHEEP';
+  } else {
+    // capture
+    const [fr, fc] = move.from!;
+    newBoard[move.to[0]][move.to[1]] = 'KITTY';
+    newBoard[fr][fc] = 'EMPTY';
+    newBoard[move.captured![0]][move.captured![1]] = 'EMPTY';
+    newSheepCaptured++;
+    nextTurn = 'SHEEP';
+  }
+
+  let winner: Turn | null = null;
+  if (newSheepCaptured >= SHEEP_TO_WIN) {
+    winner = 'KITTY';
+  } else if (checkKittensBlocked(newBoard)) {
+    winner = 'SHEEP';
+  } else if (newPhase === 'MOVEMENT' && nextTurn === 'SHEEP' && !checkSheepHaveMoves(newBoard)) {
+    winner = 'KITTY';
+  }
+
+  return {
+    board: newBoard,
+    turn: nextTurn,
+    phase: newPhase,
+    sheepPlaced: newSheepPlaced,
+    sheepCaptured: newSheepCaptured,
+    selectedPiece: null,
+    winner,
+    validMoves: [],
+    lastMove: move,
+  };
 }
 
 export function getGameStatusText(state: GameState): string {

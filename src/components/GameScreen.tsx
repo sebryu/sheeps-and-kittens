@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,28 +12,94 @@ import Board from './Board';
 import { SheepPiece, KittenPiece } from './Pieces';
 import {
   GameState,
+  GameConfig,
   createInitialState,
   handleTap,
   getGameStatusText,
+  applyMove,
 } from '../engine/gameEngine';
+import { findBestMove } from '../engine/aiEngine';
 
 interface GameScreenProps {
   onBack: () => void;
+  gameConfig: GameConfig;
 }
 
-export default function GameScreen({ onBack }: GameScreenProps) {
+export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
+  const [isAIThinking, setIsAIThinking] = useState(false);
+
+  const isAITurn = (state: GameState) =>
+    (gameConfig.mode === 'ai-sheep' && state.turn === 'SHEEP') ||
+    (gameConfig.mode === 'ai-kitty' && state.turn === 'KITTY');
+
+  // AI move effect
+  useEffect(() => {
+    if (gameConfig.mode === 'local') return;
+    if (!isAITurn(gameState)) return;
+    if (gameState.winner) return;
+
+    setIsAIThinking(true);
+
+    const timer = setTimeout(() => {
+      setGameState(prev => {
+        const bestMove = findBestMove(prev, gameConfig.difficulty);
+        if (bestMove) {
+          return applyMove(prev, bestMove);
+        }
+        return prev;
+      });
+      setIsAIThinking(false);
+    }, 600);
+
+    return () => {
+      clearTimeout(timer);
+      setIsAIThinking(false);
+    };
+  }, [gameState.turn, gameState.winner, gameConfig.mode, gameConfig.difficulty]);
 
   const onBoardTap = useCallback((row: number, col: number) => {
-    setGameState(prev => handleTap(prev, row, col));
-  }, []);
+    if (isAIThinking) return;
+    setGameState(prev => {
+      if (isAITurn(prev)) return prev;
+      return handleTap(prev, row, col);
+    });
+  }, [isAIThinking, gameConfig.mode]);
 
   const onRestart = useCallback(() => {
     setGameState(createInitialState());
   }, []);
 
-  const statusText = getGameStatusText(gameState);
+  // Dynamic labels
+  const sheepLabel = gameConfig.mode === 'ai-sheep'
+    ? 'Sheeps (AI)' : gameConfig.mode === 'ai-kitty'
+    ? 'Sheeps (You)' : 'Sheeps';
+  const kittyLabel = gameConfig.mode === 'ai-kitty'
+    ? 'Kittens (AI)' : gameConfig.mode === 'ai-sheep'
+    ? 'Kittens (You)' : 'Kittens';
+
+  // Status text with thinking indicator
+  const statusText = isAIThinking
+    ? (gameState.turn === 'KITTY' ? 'Kitty is thinking...' : 'Sheep is thinking...')
+    : getGameStatusText(gameState);
+
   const isSheepTurn = gameState.turn === 'SHEEP';
+
+  // Win modal text
+  const getWinTitle = () => {
+    if (gameConfig.mode === 'local') {
+      return gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!';
+    }
+    const humanSide = gameConfig.mode === 'ai-sheep' ? 'KITTY' : 'SHEEP';
+    return gameState.winner === humanSide ? 'You Win!' : 'You Lose!';
+  };
+
+  const getWinSubtitle = () => {
+    if (gameState.winner === 'SHEEP') {
+      return 'All kittens have been blocked!';
+    }
+    return `${gameState.sheepCaptured} sheeps were captured!`;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,7 +119,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
       <View style={styles.scorePanel}>
         <View style={[styles.scoreCard, isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
           <SheepPiece size={36} />
-          <Text style={styles.scoreLabel}>Sheeps</Text>
+          <Text style={styles.scoreLabel}>{sheepLabel}</Text>
           <Text style={styles.scoreDetail}>
             {gameState.phase === 'PLACEMENT'
               ? `${gameState.sheepPlaced}/20 placed`
@@ -65,7 +131,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
         </View>
         <View style={[styles.scoreCard, !isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
           <KittenPiece size={36} />
-          <Text style={styles.scoreLabel}>Kittens</Text>
+          <Text style={styles.scoreLabel}>{kittyLabel}</Text>
           <Text style={styles.scoreDetail}>{gameState.sheepCaptured}/5 captured</Text>
         </View>
       </View>
@@ -104,12 +170,10 @@ export default function GameScreen({ onBack }: GameScreenProps) {
               )}
             </View>
             <Text style={styles.modalTitle}>
-              {gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!'}
+              {getWinTitle()}
             </Text>
             <Text style={styles.modalSubtitle}>
-              {gameState.winner === 'SHEEP'
-                ? 'All kittens have been blocked!'
-                : `${gameState.sheepCaptured} sheeps were captured!`}
+              {getWinSubtitle()}
             </Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
