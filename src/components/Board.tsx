@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Dimensions, Text } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { GameState, Position } from '../engine/gameEngine';
+import { SheepPiece, KittenPiece } from './Pieces';
 
 const BOARD_SIZE = 5;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -152,12 +153,12 @@ export default function Board({ gameState, onTap }: BoardProps) {
                 {/* Pieces */}
                 {piece === 'SHEEP' && (
                   <View style={[styles.pieceContainer, selected && styles.selectedPiece]}>
-                    <Text style={styles.pieceEmoji}>🐑</Text>
+                    <SheepPiece size={PIECE_SIZE * 0.7} />
                   </View>
                 )}
                 {piece === 'KITTY' && (
                   <View style={[styles.pieceContainer, selected && styles.selectedPiece]}>
-                    <Text style={styles.pieceEmoji}>🐱</Text>
+                    <KittenPiece size={PIECE_SIZE * 0.7} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -236,8 +237,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 8,
     elevation: 10,
-  },
-  pieceEmoji: {
-    fontSize: PIECE_SIZE * 0.55,
   },
 });
