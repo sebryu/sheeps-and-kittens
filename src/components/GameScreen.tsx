@@ -41,7 +41,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Sheeps & Kitties</Text>
+        <Text style={styles.title}>Sheeps & Kittens</Text>
         <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
           <Text style={styles.restartButtonText}>↻</Text>
         </TouchableOpacity>
@@ -64,7 +64,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
         </View>
         <View style={[styles.scoreCard, !isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
           <Text style={styles.scoreEmoji}>🐱</Text>
-          <Text style={styles.scoreLabel}>Kitties</Text>
+          <Text style={styles.scoreLabel}>Kittens</Text>
           <Text style={styles.scoreDetail}>{gameState.sheepCaptured}/5 captured</Text>
         </View>
       </View>
@@ -99,11 +99,11 @@ export default function GameScreen({ onBack }: GameScreenProps) {
               {gameState.winner === 'SHEEP' ? '🐑' : '🐱'}
             </Text>
             <Text style={styles.modalTitle}>
-              {gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kitties Win!'}
+              {gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!'}
             </Text>
             <Text style={styles.modalSubtitle}>
               {gameState.winner === 'SHEEP'
-                ? 'All kitties have been blocked!'
+                ? 'All kittens have been blocked!'
                 : `${gameState.sheepCaptured} sheeps were captured!`}
             </Text>
             <View style={styles.modalButtons}>

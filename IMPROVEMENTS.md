@@ -1,4 +1,4 @@
-# Sheeps & Kitties - Improvement Suggestions
+# Sheeps & Kittens - Improvement Suggestions
 
 ## Gameplay Enhancements
 
@@ -93,7 +93,7 @@
 - Configurable board size (7x7 for a longer game)
 - Adjustable sheep/kitty counts
 - Speed mode with move timer
-- Handicap options (e.g., kitties start with only 3)
+- Handicap options (e.g., kittens start with only 3)
 
 ### Social Features
 - Share game replays

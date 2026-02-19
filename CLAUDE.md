@@ -1,6 +1,6 @@
-# Sheeps & Kitties
+# Sheeps & Kittens
 
-BaghChal (Nepali board game) re-themed: goats → sheeps (🐑), tigers → kitties (🐱).
+BaghChal (Nepali board game) re-themed: goats → sheeps (🐑), tigers → kittens (🐱).
 
 ## Tech Stack
 - Expo SDK 54, React Native, TypeScript
@@ -17,9 +17,9 @@ App.tsx                    - Root with screen navigation
 
 ## Game Rules (quick ref)
 - 5x5 board, diagonals exist only where (row + col) is even
-- 4 kitties start at corners, 20 sheeps placed one per turn
-- Kitties capture by jumping over adjacent sheep to empty space
-- Kitties win: capture 5 sheeps. Sheeps win: block all kitties.
+- 4 kittens start at corners, 20 sheeps placed one per turn
+- Kittens capture by jumping over adjacent sheep to empty space
+- Kittens win: capture 5 sheeps. Sheeps win: block all kittens.
 - Two phases: Placement (place sheeps) → Movement (move pieces)
 
 ## Agent Team

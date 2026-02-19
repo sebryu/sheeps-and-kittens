@@ -78,7 +78,7 @@ export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
               🐱
             </Animated.Text>
           </View>
-          <Text style={styles.title}>Sheeps & Kitties</Text>
+          <Text style={styles.title}>Sheeps & Kittens</Text>
           <Text style={styles.subtitle}>A BaghChal Board Game</Text>
         </View>
 
@@ -88,13 +88,13 @@ export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
           <View style={styles.ruleRow}>
             <Text style={styles.ruleEmoji}>🐑</Text>
             <Text style={styles.ruleText}>
-              20 Sheeps try to block all kitties by surrounding them
+              20 Sheeps try to block all kittens by surrounding them
             </Text>
           </View>
           <View style={styles.ruleRow}>
             <Text style={styles.ruleEmoji}>🐱</Text>
             <Text style={styles.ruleText}>
-              4 Kitties try to capture 5 sheeps by jumping over them
+              4 Kittens try to capture 5 sheeps by jumping over them
             </Text>
           </View>
           <View style={styles.divider} />

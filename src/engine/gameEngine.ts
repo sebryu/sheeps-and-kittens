@@ -97,7 +97,7 @@ export function createInitialState(): GameState {
   const board: Piece[][] = Array.from({ length: BOARD_SIZE }, () =>
     Array(BOARD_SIZE).fill('EMPTY')
   );
-  // Place 4 kitties at corners
+  // Place 4 kittens at corners
   board[0][0] = 'KITTY';
   board[0][4] = 'KITTY';
   board[4][0] = 'KITTY';
@@ -133,7 +133,7 @@ function getValidMovesForPiece(board: Piece[][], r: number, c: number, piece: Pi
   return moves;
 }
 
-function checkKittiesBlocked(board: Piece[][]): boolean {
+function checkKittensBlocked(board: Piece[][]): boolean {
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       if (board[r][c] === 'KITTY') {
@@ -175,7 +175,7 @@ export function handleTap(state: GameState, row: number, col: number): GameState
       const move: GameMove = { type: 'place', to: [row, col] };
 
       let winner: Turn | null = null;
-      if (checkKittiesBlocked(newBoard)) {
+      if (checkKittensBlocked(newBoard)) {
         winner = 'SHEEP';
       }
 
@@ -227,7 +227,7 @@ export function handleTap(state: GameState, row: number, col: number): GameState
         const move: GameMove = { type: 'move', from: [sr, sc], to: [row, col] };
 
         let winner: Turn | null = null;
-        if (checkKittiesBlocked(newBoard)) {
+        if (checkKittensBlocked(newBoard)) {
           winner = 'SHEEP';
         }
 
@@ -299,14 +299,14 @@ export function handleTap(state: GameState, row: number, col: number): GameState
       let winner: Turn | null = null;
       if (newCaptured >= SHEEP_TO_WIN) {
         winner = 'KITTY';
-      } else if (checkKittiesBlocked(newBoard)) {
+      } else if (checkKittensBlocked(newBoard)) {
         winner = 'SHEEP';
       }
 
       // Check if sheep have any moves (in movement phase)
       const newPhase = state.sheepPlaced >= TOTAL_SHEEP ? 'MOVEMENT' : 'PLACEMENT';
       if (newPhase === 'MOVEMENT' && !winner && !checkSheepHaveMoves(newBoard)) {
-        // Sheep can't move - kitties win (stalemate)
+        // Sheep can't move - kittens win (stalemate)
         winner = 'KITTY';
       }
 
@@ -328,8 +328,8 @@ export function handleTap(state: GameState, row: number, col: number): GameState
 }
 
 export function getGameStatusText(state: GameState): string {
-  if (state.winner === 'SHEEP') return 'Sheeps win! All kitties are blocked!';
-  if (state.winner === 'KITTY') return 'Kitties win! Captured 5 sheeps!';
+  if (state.winner === 'SHEEP') return 'Sheeps win! All kittens are blocked!';
+  if (state.winner === 'KITTY') return 'Kittens win! Captured 5 sheeps!';
 
   if (state.turn === 'SHEEP') {
     if (state.phase === 'PLACEMENT') {
