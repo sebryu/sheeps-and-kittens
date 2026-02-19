@@ -25,6 +25,7 @@ export interface GameState {
   sheepCaptured: number;
   selectedPiece: Position | null;
   winner: Turn | null;
+  forfeitedBy: Turn | null;
   validMoves: Position[];
   lastMove: GameMove | null;
 }
@@ -118,6 +119,7 @@ export function createInitialState(): GameState {
     sheepCaptured: 0,
     selectedPiece: null,
     winner: null,
+    forfeitedBy: null,
     validMoves: [],
     lastMove: null,
   };
@@ -194,6 +196,7 @@ export function handleTap(state: GameState, row: number, col: number): GameState
         sheepCaptured: state.sheepCaptured,
         selectedPiece: null,
         winner,
+        forfeitedBy: null,
         validMoves: [],
         lastMove: move,
       };
@@ -246,6 +249,7 @@ export function handleTap(state: GameState, row: number, col: number): GameState
           sheepCaptured: state.sheepCaptured,
           selectedPiece: null,
           winner,
+          forfeitedBy: null,
           validMoves: [],
           lastMove: move,
         };
@@ -325,6 +329,7 @@ export function handleTap(state: GameState, row: number, col: number): GameState
         sheepCaptured: newCaptured,
         selectedPiece: null,
         winner,
+        forfeitedBy: null,
         validMoves: [],
         lastMove: move,
       };
@@ -379,12 +384,28 @@ export function applyMove(state: GameState, move: GameMove): GameState {
     sheepCaptured: newSheepCaptured,
     selectedPiece: null,
     winner,
+    forfeitedBy: null,
     validMoves: [],
     lastMove: move,
   };
 }
 
+export function forfeitGame(state: GameState): GameState {
+  if (state.winner) return state;
+  const forfeitingPlayer = state.turn;
+  const opponent: Turn = forfeitingPlayer === 'SHEEP' ? 'KITTY' : 'SHEEP';
+  return {
+    ...state,
+    winner: opponent,
+    forfeitedBy: forfeitingPlayer,
+    selectedPiece: null,
+    validMoves: [],
+  };
+}
+
 export function getGameStatusText(state: GameState): string {
+  if (state.forfeitedBy === 'SHEEP') return 'Sheeps forfeited! Kittens win!';
+  if (state.forfeitedBy === 'KITTY') return 'Kittens forfeited! Sheeps win!';
   if (state.winner === 'SHEEP') return 'Sheeps win! All kittens are blocked!';
   if (state.winner === 'KITTY') return 'Kittens win! Captured 5 sheeps!';
 
