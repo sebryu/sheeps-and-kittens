@@ -2,6 +2,7 @@
   "expo": {
     "name": "Sheeps & Kittens",
     "slug": "sheeps-and-kittens",
+    "owner": "sebryu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,6 +24,17 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d06e77d9-21ce-41f7-9317-87a0ff272fd5"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d06e77d9-21ce-41f7-9317-87a0ff272fd5"
+      }
     }
   }
 }
