@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import Board from './Board';
+import { SheepPiece, KittenPiece } from './Pieces';
 import {
   GameState,
   createInitialState,
@@ -51,7 +52,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
       {/* Score Panel */}
       <View style={styles.scorePanel}>
         <View style={[styles.scoreCard, isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
-          <Text style={styles.scoreEmoji}>🐑</Text>
+          <SheepPiece size={36} />
           <Text style={styles.scoreLabel}>Sheeps</Text>
           <Text style={styles.scoreDetail}>
             {gameState.phase === 'PLACEMENT'
@@ -63,7 +64,7 @@ export default function GameScreen({ onBack }: GameScreenProps) {
           <Text style={styles.vsText}>VS</Text>
         </View>
         <View style={[styles.scoreCard, !isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
-          <Text style={styles.scoreEmoji}>🐱</Text>
+          <KittenPiece size={36} />
           <Text style={styles.scoreLabel}>Kittens</Text>
           <Text style={styles.scoreDetail}>{gameState.sheepCaptured}/5 captured</Text>
         </View>
@@ -95,9 +96,13 @@ export default function GameScreen({ onBack }: GameScreenProps) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalEmoji}>
-              {gameState.winner === 'SHEEP' ? '🐑' : '🐱'}
-            </Text>
+            <View style={styles.modalPiece}>
+              {gameState.winner === 'SHEEP' ? (
+                <SheepPiece size={80} />
+              ) : (
+                <KittenPiece size={80} />
+              )}
+            </View>
             <Text style={styles.modalTitle}>
               {gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!'}
             </Text>
@@ -188,9 +193,6 @@ const styles = StyleSheet.create({
     borderColor: '#FFC107',
     backgroundColor: '#FFFDE7',
   },
-  scoreEmoji: {
-    fontSize: 28,
-  },
   scoreLabel: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -258,9 +260,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
   },
-  modalEmoji: {
-    fontSize: 72,
+  modalPiece: {
     marginBottom: 12,
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: 28,

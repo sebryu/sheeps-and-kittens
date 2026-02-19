@@ -8,6 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native';
+import { SheepPiece, KittenPiece } from './Pieces';
 
 interface WelcomeScreenProps {
   onPlay: () => void;
@@ -66,17 +67,17 @@ export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
         {/* Title */}
         <View style={styles.titleSection}>
           <View style={styles.emojiRow}>
-            <Animated.Text
-              style={[styles.titleEmoji, { transform: [{ translateX: sheepAnim }] }]}
+            <Animated.View
+              style={{ transform: [{ translateX: sheepAnim }] }}
             >
-              🐑
-            </Animated.Text>
+              <SheepPiece size={64} />
+            </Animated.View>
             <Text style={styles.vsEmoji}>⚔️</Text>
-            <Animated.Text
-              style={[styles.titleEmoji, { transform: [{ translateX: kittyAnim }] }]}
+            <Animated.View
+              style={{ transform: [{ translateX: kittyAnim }] }}
             >
-              🐱
-            </Animated.Text>
+              <KittenPiece size={64} />
+            </Animated.View>
           </View>
           <Text style={styles.title}>Sheeps & Kittens</Text>
           <Text style={styles.subtitle}>A BaghChal Board Game</Text>
@@ -86,26 +87,34 @@ export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
         <View style={styles.rulesCard}>
           <Text style={styles.rulesTitle}>How to Play</Text>
           <View style={styles.ruleRow}>
-            <Text style={styles.ruleEmoji}>🐑</Text>
+            <View style={styles.ruleIcon}>
+              <SheepPiece size={28} />
+            </View>
             <Text style={styles.ruleText}>
               20 Sheeps try to block all kittens by surrounding them
             </Text>
           </View>
           <View style={styles.ruleRow}>
-            <Text style={styles.ruleEmoji}>🐱</Text>
+            <View style={styles.ruleIcon}>
+              <KittenPiece size={28} />
+            </View>
             <Text style={styles.ruleText}>
               4 Kittens try to capture 5 sheeps by jumping over them
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.ruleRow}>
-            <Text style={styles.ruleEmoji}>1️⃣</Text>
+            <View style={styles.ruleIcon}>
+              <Text style={styles.ruleNumber}>1️⃣</Text>
+            </View>
             <Text style={styles.ruleText}>
               First, sheeps are placed one at a time
             </Text>
           </View>
           <View style={styles.ruleRow}>
-            <Text style={styles.ruleEmoji}>2️⃣</Text>
+            <View style={styles.ruleIcon}>
+              <Text style={styles.ruleNumber}>2️⃣</Text>
+            </View>
             <Text style={styles.ruleText}>
               Then both sides move along the lines
             </Text>
@@ -146,9 +155,6 @@ const styles = StyleSheet.create({
     gap: 16,
     marginBottom: 12,
   },
-  titleEmoji: {
-    fontSize: 56,
-  },
   vsEmoji: {
     fontSize: 32,
   },
@@ -188,9 +194,13 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     gap: 12,
   },
-  ruleEmoji: {
-    fontSize: 24,
+  ruleIcon: {
     width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ruleNumber: {
+    fontSize: 24,
     textAlign: 'center',
   },
   ruleText: {
