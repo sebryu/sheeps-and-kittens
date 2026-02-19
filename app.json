@@ -29,7 +29,12 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/sheeps-and-kittens"
+      "url": "https://u.expo.dev/d06e77d9-21ce-41f7-9317-87a0ff272fd5"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d06e77d9-21ce-41f7-9317-87a0ff272fd5"
+      }
     }
   }
 }
