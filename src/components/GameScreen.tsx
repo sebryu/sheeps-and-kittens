@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  Animated,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +22,8 @@ import {
   forfeitGame,
 } from '../engine/gameEngine';
 import { findBestMove } from '../engine/aiEngine';
+import { triggerHaptic } from '../utils/haptics';
+import { loadAllSounds, playSound, unloadAllSounds } from '../utils/sounds';
 
 interface GameScreenProps {
   onBack: () => void;
@@ -30,12 +33,184 @@ interface GameScreenProps {
 export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   const [gameState, setGameState] = useState<GameState>(createInitialState());
   const [isAIThinking, setIsAIThinking] = useState(false);
+  const [phaseBannerVisible, setPhaseBannerVisible] = useState(false);
 
+  // Ref kept in sync with the latest game state so event handlers can read
+  // current state without closing over a stale value.
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+
+  // ── Animated values ────────────────────────────────────────────────
+  // Win modal: springs from small scale into full size
+  const winModalScale = useRef(new Animated.Value(0.5)).current;
+  const winOverlayOpacity = useRef(new Animated.Value(0)).current;
+
+  // Score bump when sheepCaptured increments
+  const scoreBumpScale = useRef(new Animated.Value(1)).current;
+
+  // Phase banner: slides down from above, then back up
+  const phaseBannerY = useRef(new Animated.Value(-60)).current;
+  const phaseBannerOpacity = useRef(new Animated.Value(0)).current;
+
+  // AI thinking status text pulse
+  const aiPulseOpacity = useRef(new Animated.Value(1)).current;
+  const aiPulseLoop = useRef<Animated.CompositeAnimation | null>(null);
+
+  // ── Sound loading ──────────────────────────────────────────────────
+  useEffect(() => {
+    loadAllSounds();
+    return () => { unloadAllSounds(); };
+  }, []);
+
+  // ── AI thinking pulse ──────────────────────────────────────────────
+  useEffect(() => {
+    if (isAIThinking) {
+      aiPulseOpacity.setValue(0.4);
+      aiPulseLoop.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(aiPulseOpacity, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(aiPulseOpacity, {
+            toValue: 0.4,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      aiPulseLoop.current.start();
+    } else {
+      aiPulseLoop.current?.stop();
+      aiPulseLoop.current = null;
+      aiPulseOpacity.setValue(1);
+    }
+  }, [isAIThinking]);
+
+  // ── Phase banner helper ────────────────────────────────────────────
+  const showPhaseBanner = useCallback(() => {
+    setPhaseBannerVisible(true);
+    phaseBannerY.setValue(-60);
+    phaseBannerOpacity.setValue(0);
+    Animated.sequence([
+      Animated.parallel([
+        Animated.spring(phaseBannerY, {
+          toValue: 0,
+          friction: 7,
+          tension: 60,
+          useNativeDriver: true,
+        }),
+        Animated.timing(phaseBannerOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(1800),
+      Animated.parallel([
+        Animated.timing(phaseBannerY, {
+          toValue: -60,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(phaseBannerOpacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(() => setPhaseBannerVisible(false));
+  }, []);
+
+  // ── Game event detection ───────────────────────────────────────────
+  const prevGameStateRef = useRef<GameState | null>(null);
+
+  useEffect(() => {
+    const prev = prevGameStateRef.current;
+    const curr = gameState;
+    prevGameStateRef.current = curr;
+
+    if (!prev) return;
+
+    // Win
+    if (!prev.winner && curr.winner) {
+      triggerHaptic('win');
+      playSound('win');
+      winModalScale.setValue(0.5);
+      winOverlayOpacity.setValue(0);
+      Animated.parallel([
+        Animated.spring(winModalScale, {
+          toValue: 1,
+          friction: 5,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+        Animated.timing(winOverlayOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    // Phase transition (Placement → Movement)
+    if (prev.phase !== curr.phase && curr.phase === 'MOVEMENT') {
+      triggerHaptic('phaseChange');
+      showPhaseBanner();
+    }
+
+    // Score bump on capture
+    if (curr.sheepCaptured > prev.sheepCaptured) {
+      scoreBumpScale.setValue(1);
+      Animated.sequence([
+        Animated.timing(scoreBumpScale, {
+          toValue: 1.5,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scoreBumpScale, {
+          toValue: 1,
+          friction: 3,
+          tension: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+
+    // Selection event (new selection, no lastMove change)
+    if (!prev.selectedPiece && curr.selectedPiece) {
+      triggerHaptic('select');
+      playSound('select');
+      return;
+    }
+
+    // Move events
+    const move = curr.lastMove;
+    if (!move || move === prev.lastMove) return;
+
+    switch (move.type) {
+      case 'place':
+        triggerHaptic('place');
+        playSound('place');
+        break;
+      case 'move':
+        triggerHaptic('move');
+        playSound('move');
+        break;
+      case 'capture':
+        triggerHaptic('capture');
+        playSound('capture');
+        break;
+    }
+  }, [gameState]);
+
+  // ── AI move ────────────────────────────────────────────────────────
   const isAITurn = (state: GameState) =>
     (gameConfig.mode === 'ai-sheep' && state.turn === 'SHEEP') ||
     (gameConfig.mode === 'ai-kitty' && state.turn === 'KITTY');
 
-  // AI move effect
   useEffect(() => {
     if (gameConfig.mode === 'local') return;
     if (!isAITurn(gameState)) return;
@@ -60,12 +235,18 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     };
   }, [gameState.turn, gameState.winner, gameConfig.mode, gameConfig.difficulty]);
 
+  // ── Board tap ──────────────────────────────────────────────────────
   const onBoardTap = useCallback((row: number, col: number) => {
     if (isAIThinking) return;
-    setGameState(prev => {
-      if (isAITurn(prev)) return prev;
-      return handleTap(prev, row, col);
-    });
+    const curr = gameStateRef.current;
+    if (isAITurn(curr)) return;
+    const next = handleTap(curr, row, col);
+    // Trigger invalid-tap feedback before updating state (no side effects in updater).
+    if (next === curr) {
+      triggerHaptic('invalid');
+      playSound('invalid');
+    }
+    setGameState(next);
   }, [isAIThinking, gameConfig.mode]);
 
   const onRestart = useCallback(() => {
@@ -89,7 +270,7 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     );
   }, [gameState.winner, gameState.turn]);
 
-  // Dynamic labels
+  // ── Labels & text ──────────────────────────────────────────────────
   const sheepLabel = gameConfig.mode === 'ai-sheep'
     ? 'Sheeps (AI)' : gameConfig.mode === 'ai-kitty'
     ? 'Sheeps (You)' : 'Sheeps';
@@ -97,14 +278,12 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     ? 'Kittens (AI)' : gameConfig.mode === 'ai-sheep'
     ? 'Kittens (You)' : 'Kittens';
 
-  // Status text with thinking indicator
   const statusText = isAIThinking
     ? (gameState.turn === 'KITTY' ? 'Kitty is thinking...' : 'Sheep is thinking...')
     : getGameStatusText(gameState);
 
   const isSheepTurn = gameState.turn === 'SHEEP';
 
-  // Win modal text
   const getWinTitle = () => {
     if (gameConfig.mode === 'local') {
       return gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!';
@@ -124,8 +303,24 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     return `${gameState.sheepCaptured} sheeps were captured!`;
   };
 
+  // ── Render ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container}>
+      {/* Phase transition banner */}
+      {phaseBannerVisible && (
+        <Animated.View
+          style={[
+            styles.phaseBanner,
+            {
+              transform: [{ translateY: phaseBannerY }],
+              opacity: phaseBannerOpacity,
+            },
+          ]}
+        >
+          <Text style={styles.phaseBannerText}>Movement Phase Begins!</Text>
+        </Animated.View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -138,60 +333,75 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-      {/* Score Panel */}
-      <View style={styles.scorePanel}>
-        <View style={[styles.scoreCard, isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
-          <SheepPiece size={36} />
-          <Text style={styles.scoreLabel}>{sheepLabel}</Text>
-          <Text style={styles.scoreDetail}>
-            {gameState.phase === 'PLACEMENT'
-              ? `${gameState.sheepPlaced}/20 placed`
-              : `${20 - gameState.sheepCaptured} alive`}
+        {/* Score Panel */}
+        <View style={styles.scorePanel}>
+          <View style={[styles.scoreCard, isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
+            <SheepPiece size={36} />
+            <Text style={styles.scoreLabel}>{sheepLabel}</Text>
+            <Text style={styles.scoreDetail}>
+              {gameState.phase === 'PLACEMENT'
+                ? `${gameState.sheepPlaced}/20 placed`
+                : `${20 - gameState.sheepCaptured} alive`}
+            </Text>
+          </View>
+          <View style={styles.vsContainer}>
+            <Text style={styles.vsText}>VS</Text>
+          </View>
+          <View style={[styles.scoreCard, !isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
+            <KittenPiece size={36} />
+            <Text style={styles.scoreLabel}>{kittyLabel}</Text>
+            <Animated.Text
+              style={[styles.scoreDetail, { transform: [{ scale: scoreBumpScale }] }]}
+            >
+              {gameState.sheepCaptured}/5 captured
+            </Animated.Text>
+          </View>
+        </View>
+
+        {/* Status Bar */}
+        <View style={[styles.statusBar, gameState.winner && styles.winnerStatusBar]}>
+          <Animated.Text
+            style={[
+              styles.statusText,
+              gameState.winner && styles.winnerStatusText,
+              isAIThinking && { opacity: aiPulseOpacity },
+            ]}
+          >
+            {statusText}
+          </Animated.Text>
+        </View>
+
+        {/* Board */}
+        <Board gameState={gameState} onTap={onBoardTap} />
+
+        {/* Phase indicator */}
+        <View style={styles.phaseBar}>
+          <Text style={styles.phaseText}>
+            Phase: {gameState.phase === 'PLACEMENT' ? '🏗 Placement' : '♟ Movement'}
           </Text>
         </View>
-        <View style={styles.vsContainer}>
-          <Text style={styles.vsText}>VS</Text>
-        </View>
-        <View style={[styles.scoreCard, !isSheepTurn && !gameState.winner && styles.activeScoreCard]}>
-          <KittenPiece size={36} />
-          <Text style={styles.scoreLabel}>{kittyLabel}</Text>
-          <Text style={styles.scoreDetail}>{gameState.sheepCaptured}/5 captured</Text>
-        </View>
-      </View>
 
-      {/* Status Bar */}
-      <View style={[styles.statusBar, gameState.winner && styles.winnerStatusBar]}>
-        <Text style={[styles.statusText, gameState.winner && styles.winnerStatusText]}>
-          {statusText}
-        </Text>
-      </View>
-
-      {/* Board */}
-      <Board gameState={gameState} onTap={onBoardTap} />
-
-      {/* Phase indicator */}
-      <View style={styles.phaseBar}>
-        <Text style={styles.phaseText}>
-          Phase: {gameState.phase === 'PLACEMENT' ? '🏗 Placement' : '♟ Movement'}
-        </Text>
-      </View>
-
-      {/* Forfeit button */}
-      {!gameState.winner && (
-        <TouchableOpacity style={styles.forfeitButton} onPress={onForfeit}>
-          <Text style={styles.forfeitButtonText}>🏳 Forfeit</Text>
-        </TouchableOpacity>
-      )}
+        {/* Forfeit button */}
+        {!gameState.winner && (
+          <TouchableOpacity style={styles.forfeitButton} onPress={onForfeit}>
+            <Text style={styles.forfeitButtonText}>🏳 Forfeit</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Win Modal */}
       <Modal
         visible={gameState.winner !== null}
         transparent
-        animationType="fade"
+        animationType="none"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Animated.View style={[styles.modalOverlay, { opacity: winOverlayOpacity }]}>
+          <Animated.View
+            style={[
+              styles.modalContent,
+              { transform: [{ scale: winModalScale }] },
+            ]}
+          >
             <View style={styles.modalPiece}>
               {gameState.winner === 'SHEEP' ? (
                 <SheepPiece size={80} />
@@ -199,12 +409,8 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
                 <KittenPiece size={80} />
               )}
             </View>
-            <Text style={styles.modalTitle}>
-              {getWinTitle()}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              {getWinSubtitle()}
-            </Text>
+            <Text style={styles.modalTitle}>{getWinTitle()}</Text>
+            <Text style={styles.modalSubtitle}>{getWinSubtitle()}</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.playAgainButton]}
@@ -219,8 +425,8 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
                 <Text style={styles.menuButtonText}>Menu</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </Animated.View>
+        </Animated.View>
       </Modal>
     </SafeAreaView>
   );
@@ -233,6 +439,26 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+  },
+  phaseBanner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: '#FFC107',
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 12,
+  },
+  phaseBannerText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3E2723',
   },
   header: {
     flexDirection: 'row',
