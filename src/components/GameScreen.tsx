@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import Board from './Board';
@@ -17,6 +18,7 @@ import {
   handleTap,
   getGameStatusText,
   applyMove,
+  forfeitGame,
 } from '../engine/gameEngine';
 import { findBestMove } from '../engine/aiEngine';
 
@@ -70,6 +72,23 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     setGameState(createInitialState());
   }, []);
 
+  const onForfeit = useCallback(() => {
+    if (gameState.winner) return;
+    const side = gameState.turn === 'SHEEP' ? 'Sheeps' : 'Kittens';
+    Alert.alert(
+      'Forfeit Game?',
+      `${side} will forfeit and the opponent wins.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Forfeit',
+          style: 'destructive',
+          onPress: () => setGameState(current => forfeitGame(current)),
+        },
+      ],
+    );
+  }, [gameState.winner, gameState.turn]);
+
   // Dynamic labels
   const sheepLabel = gameConfig.mode === 'ai-sheep'
     ? 'Sheeps (AI)' : gameConfig.mode === 'ai-kitty'
@@ -95,6 +114,10 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   };
 
   const getWinSubtitle = () => {
+    if (gameState.forfeitedBy) {
+      const side = gameState.forfeitedBy === 'SHEEP' ? 'Sheeps' : 'Kittens';
+      return `${side} forfeited the game.`;
+    }
     if (gameState.winner === 'SHEEP') {
       return 'All kittens have been blocked!';
     }
@@ -152,6 +175,13 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
           Phase: {gameState.phase === 'PLACEMENT' ? '🏗 Placement' : '♟ Movement'}
         </Text>
       </View>
+
+      {/* Forfeit button */}
+      {!gameState.winner && (
+        <TouchableOpacity style={styles.forfeitButton} onPress={onForfeit}>
+          <Text style={styles.forfeitButtonText}>🏳 Forfeit</Text>
+        </TouchableOpacity>
+      )}
       </ScrollView>
 
       {/* Win Modal */}
@@ -364,5 +394,20 @@ const styles = StyleSheet.create({
     color: '#5D4037',
     fontSize: 16,
     fontWeight: '600',
+  },
+  forfeitButton: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    backgroundColor: '#FFF3F3',
+  },
+  forfeitButtonText: {
+    color: '#C62828',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
