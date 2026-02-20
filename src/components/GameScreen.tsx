@@ -35,6 +35,11 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [phaseBannerVisible, setPhaseBannerVisible] = useState(false);
 
+  // Ref kept in sync with the latest game state so event handlers can read
+  // current state without closing over a stale value.
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+
   // ── Animated values ────────────────────────────────────────────────
   // Win modal: springs from small scale into full size
   const winModalScale = useRef(new Animated.Value(0.5)).current;
@@ -233,16 +238,15 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   // ── Board tap ──────────────────────────────────────────────────────
   const onBoardTap = useCallback((row: number, col: number) => {
     if (isAIThinking) return;
-    setGameState(prev => {
-      if (isAITurn(prev)) return prev;
-      const next = handleTap(prev, row, col);
-      if (next === prev) {
-        // No state change = invalid tap
-        triggerHaptic('invalid');
-        playSound('invalid');
-      }
-      return next;
-    });
+    const curr = gameStateRef.current;
+    if (isAITurn(curr)) return;
+    const next = handleTap(curr, row, col);
+    // Trigger invalid-tap feedback before updating state (no side effects in updater).
+    if (next === curr) {
+      triggerHaptic('invalid');
+      playSound('invalid');
+    }
+    setGameState(next);
   }, [isAIThinking, gameConfig.mode]);
 
   const onRestart = useCallback(() => {
