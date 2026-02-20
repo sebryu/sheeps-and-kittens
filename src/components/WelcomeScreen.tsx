@@ -13,9 +13,10 @@ import { GameConfig, GameMode, Difficulty } from '../engine/gameEngine';
 
 interface WelcomeScreenProps {
   onPlay: (config: GameConfig) => void;
+  onTutorial: () => void;
 }
 
-export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
+export default function WelcomeScreen({ onPlay, onTutorial }: WelcomeScreenProps) {
   const bounceAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const sheepAnim = useRef(new Animated.Value(-50)).current;
@@ -205,6 +206,10 @@ export default function WelcomeScreen({ onPlay }: WelcomeScreenProps) {
             <Text style={styles.playButtonText}>Play Game</Text>
           </TouchableOpacity>
         </Animated.View>
+
+        <TouchableOpacity style={styles.tutorialButton} onPress={onTutorial} activeOpacity={0.7}>
+          <Text style={styles.tutorialButtonText}>How to Play</Text>
+        </TouchableOpacity>
 
         <Text style={styles.footer}>{footerText}</Text>
       </Animated.View>
@@ -400,6 +405,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 22,
     fontWeight: 'bold',
+  },
+  tutorialButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#5D4037',
+    backgroundColor: 'transparent',
+  },
+  tutorialButtonText: {
+    color: '#5D4037',
+    fontSize: 16,
+    fontWeight: '600',
   },
   footer: {
     fontSize: 13,
