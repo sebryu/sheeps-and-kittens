@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import WelcomeScreen from './src/components/WelcomeScreen';
 import GameScreen from './src/components/GameScreen';
 import TutorialScreen from './src/components/TutorialScreen';
@@ -20,7 +21,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="dark" />
       {screen === 'welcome' ? (
         <WelcomeScreen onPlay={handlePlay} onTutorial={() => setScreen('tutorial')} />
@@ -29,6 +30,6 @@ export default function App() {
       ) : (
         <GameScreen gameConfig={gameConfig} onBack={() => setScreen('welcome')} />
       )}
-    </>
+    </SafeAreaProvider>
   );
 }

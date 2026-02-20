@@ -8,7 +8,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Board from './Board';
 import { SheepPiece, KittenPiece } from './Pieces';
 import {
