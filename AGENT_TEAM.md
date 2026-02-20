@@ -193,6 +193,98 @@ devices. Recommend an approach with code examples."
 
 ---
 
+## Design Agent Team - Asset Creation
+
+For designing and iterating on visual game assets (pieces, board themes, UI elements).
+
+### Team Structure
+
+```
+┌─────────────────────────────────────────────────┐
+│             DESIGN ORCHESTRATOR                  │
+│  (main thread)                                   │
+│  Responsibilities:                               │
+│  - Define style directions & constraints         │
+│  - Write all component files                     │
+│  - Build preview/comparison screen               │
+│  - Integrate chosen design into app              │
+└───┬─────────┬─────────┬─────────┬───────────────┘
+    │         │         │         │
+┌───▼───┐ ┌──▼────┐ ┌──▼────┐ ┌──▼────┐
+│Design │ │Design │ │Design │ │Design │
+│Agent A│ │Agent B│ │Agent C│ │Agent D│
+│(style)│ │(style)│ │(style)│ │(style)│
+└───────┘ └───────┘ └───────┘ └───────┘
+```
+
+### Design Agent (×N, one per style variant)
+
+**When to spawn:** All in parallel, after defining the style briefs.
+
+**Agent type:** `general-purpose`
+**Model:** `sonnet` (creative but focused code generation)
+
+#### Prompt Template
+
+```
+Design a [STYLE_NAME] version of game pieces for a React Native board game.
+Constraints:
+- Must use only React Native View components (no SVG, no images, no external deps)
+- Components accept a `size` prop; use `const u = size / 100` as the unit scale
+- Must export SheepPiece and KittenPiece components with interface { size: number }
+- All dimensions must scale proportionally using the `u` unit
+- Must look distinct and recognizable at sizes from 30px to 120px
+
+Style brief: [DETAILED_STYLE_DESCRIPTION]
+
+Return the complete TypeScript/React Native component code.
+```
+
+#### Why parallel design agents
+
+- Each agent explores one visual direction independently
+- No cross-contamination of creative ideas between styles
+- All run concurrently for fast iteration
+- Main thread compares results and handles file writing
+
+### Design QA Agent
+
+**When to spawn:** After user selects a design, before final integration.
+
+**Agent type:** `general-purpose`
+**Model:** `sonnet`
+
+#### Prompt Template
+
+```
+Review the selected piece design at [FILE_PATH] for:
+1. Scaling correctness - do all parts scale properly with the `u` unit?
+2. Cross-platform rendering - any Views that might render differently on iOS/Android/Web?
+3. Performance - excessive nesting or unnecessary layers?
+4. Visual consistency - do sheep and kitten feel like they belong in the same game?
+5. Accessibility - sufficient contrast and size at minimum game board scale?
+
+Report issues. Do NOT modify the file.
+```
+
+### Parallelization Strategy
+
+```
+TIME ──────────────────────────────────────────────────────────────►
+
+Agent A: [=== Design style A ===]
+Agent B: [=== Design style B ===]
+Agent C: [=== Design style C ===]
+Agent D: [=== Design style D ===]
+Main:    [= Setup preview =====][= Collect & write =][= Present to user =]
+User:                                                  [= Pick one ===]
+Main:                                                                  [= Integrate =]
+QA Agent:                                                              [= Review ====]
+Main:                                                                  [== Final fix ==]
+```
+
+---
+
 ## Quick Start
 
 To recreate this team for a new game project, paste this into Claude Code:
