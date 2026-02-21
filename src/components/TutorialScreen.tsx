@@ -7,8 +7,8 @@ import {
   Animated,
   Dimensions,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { SheepPiece, KittenPiece } from './Pieces';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
