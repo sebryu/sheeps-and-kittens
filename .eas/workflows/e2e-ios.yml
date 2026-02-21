@@ -1,0 +1,26 @@
+name: e2e-ios
+
+on:
+  pull_request:
+    branches: ['*']
+
+jobs:
+  build_ios:
+    type: build
+    params:
+      platform: ios
+      profile: e2e
+
+  maestro_ios:
+    needs: [build_ios]
+    type: maestro
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      flow_path:
+        - .maestro/welcome.yaml
+        - .maestro/mode-selection.yaml
+        - .maestro/navigate-to-game.yaml
+        - .maestro/gameplay.yaml
+        - .maestro/ai-game.yaml
+        - .maestro/tutorial.yaml
+        - .maestro/tutorial-back.yaml

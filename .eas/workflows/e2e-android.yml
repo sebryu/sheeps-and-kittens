@@ -1,0 +1,26 @@
+name: e2e-android
+
+on:
+  pull_request:
+    branches: ['*']
+
+jobs:
+  build_android:
+    type: build
+    params:
+      platform: android
+      profile: e2e
+
+  maestro_android:
+    needs: [build_android]
+    type: maestro
+    params:
+      build_id: ${{ needs.build_android.outputs.build_id }}
+      flow_path:
+        - .maestro/welcome.yaml
+        - .maestro/mode-selection.yaml
+        - .maestro/navigate-to-game.yaml
+        - .maestro/gameplay.yaml
+        - .maestro/ai-game.yaml
+        - .maestro/tutorial.yaml
+        - .maestro/tutorial-back.yaml
