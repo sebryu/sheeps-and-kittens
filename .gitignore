@@ -44,8 +44,9 @@ package-lock.json
 /ios
 /android
 
-# Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+# Maestro
+maestro-report.xml
+
+# Build artifacts (e2e)
+*.apk
+*.tar.gz

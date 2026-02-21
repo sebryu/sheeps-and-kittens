@@ -1,0 +1,32 @@
+appId: com.sebryu.sheepsandkittens
+name: Welcome Screen
+---
+# Verify the welcome screen renders correctly
+
+- assertVisible:
+    id: "welcome-title"
+
+- assertVisible: "A BaghChal Board Game"
+
+# Rules preview card
+- assertVisible: "How to Play"
+- assertVisible: "20 Sheeps try to block all kittens"
+- assertVisible: "4 Kittens try to capture 5 sheeps"
+
+# Game mode selector
+- assertVisible: "Game Mode"
+- assertVisible:
+    id: "mode-local"
+- assertVisible:
+    id: "mode-ai-kitty"
+- assertVisible:
+    id: "mode-ai-sheep"
+
+# Default mode is local — footer reflects this
+- assertVisible: "Two players - take turns on the same device"
+
+# Play and tutorial buttons
+- assertVisible:
+    id: "play-button"
+- assertVisible:
+    id: "tutorial-button"

@@ -1,0 +1,41 @@
+appId: com.sebryu.sheepsandkittens
+name: AI Game Mode
+---
+# Start a game vs AI and verify AI labels appear
+
+- assertVisible:
+    id: "welcome-title"
+
+# Select AI mode — play as Sheep (AI controls Kittens)
+- tapOn:
+    id: "mode-ai-kitty"
+
+# Set difficulty to hard
+- tapOn:
+    id: "difficulty-hard"
+
+- tapOn:
+    id: "play-button"
+
+# Game screen should show AI labels
+- assertVisible:
+    id: "game-title"
+- assertVisible: "Kittens (AI)"
+- assertVisible: "Sheeps (You)"
+
+# Place a sheep — AI should respond after
+- tapOn:
+    id: "cell-0-1"
+- assertVisible: "1/20 placed"
+
+# Wait for AI to think and move
+- extendedWaitUntil:
+    visible: "0/20 placed"
+    timeout: 10000
+    optional: true
+
+# Go back to menu
+- tapOn:
+    id: "game-back-button"
+- assertVisible:
+    id: "welcome-title"

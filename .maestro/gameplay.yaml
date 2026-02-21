@@ -1,0 +1,42 @@
+appId: com.sebryu.sheepsandkittens
+name: Gameplay - Placement Phase
+---
+# Play a few turns in local two-player mode
+
+- assertVisible:
+    id: "welcome-title"
+
+- tapOn:
+    id: "play-button"
+
+# Verify initial game state
+- assertVisible:
+    id: "game-title"
+- assertVisible: "0/20 placed"
+
+# Place a sheep on an empty cell (0,1) — sheeps go first
+# Corners (0,0), (0,4), (4,0), (4,4) have kittens
+- tapOn:
+    id: "cell-0-1"
+
+# Sheep count should update
+- assertVisible: "1/20 placed"
+
+# Now it's kitten's turn — select a kitten to move it
+# Tap kitten at (0,0) to select it
+- tapOn:
+    id: "cell-0-0"
+
+# Tap an adjacent empty cell to move the kitten (1,0)
+- tapOn:
+    id: "cell-1-0"
+
+# After kitten moves, it's sheep's turn again — place another sheep
+- tapOn:
+    id: "cell-2-1"
+- assertVisible: "2/20 placed"
+
+# Restart the game
+- tapOn:
+    id: "restart-button"
+- assertVisible: "0/20 placed"

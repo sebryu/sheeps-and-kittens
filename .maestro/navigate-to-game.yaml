@@ -1,0 +1,40 @@
+appId: com.sebryu.sheepsandkittens
+name: Navigate to Game and Back
+---
+# Start a local game and verify the game screen
+
+- assertVisible:
+    id: "welcome-title"
+
+- tapOn:
+    id: "play-button"
+
+# Game screen should appear
+- assertVisible:
+    id: "game-title"
+- assertVisible:
+    id: "game-back-button"
+- assertVisible:
+    id: "phase-indicator"
+- assertVisible:
+    id: "status-bar"
+
+# Initial game state
+- assertVisible:
+    text: ".*Placement.*"
+    regex: true
+- assertVisible: "0/20 placed"
+- assertVisible: "0/5 captured"
+- assertVisible: "Sheeps"
+- assertVisible: "Kittens"
+- assertVisible: "VS"
+
+# Forfeit button visible during gameplay
+- assertVisible:
+    id: "forfeit-button"
+
+# Navigate back to welcome
+- tapOn:
+    id: "game-back-button"
+- assertVisible:
+    id: "welcome-title"

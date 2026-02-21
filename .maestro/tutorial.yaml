@@ -1,0 +1,71 @@
+appId: com.sebryu.sheepsandkittens
+name: Tutorial Navigation
+---
+# Navigate through the tutorial
+
+- assertVisible:
+    id: "welcome-title"
+
+- tapOn:
+    id: "tutorial-button"
+
+# Tutorial screen should appear
+- assertVisible:
+    id: "tutorial-header"
+- assertVisible: "The Board"
+- assertVisible: "1 / 7"
+
+# Previous button should NOT be visible on first step
+- assertNotVisible:
+    id: "tutorial-prev-button"
+
+# Advance to next step
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "Meet the Kittens"
+- assertVisible: "2 / 7"
+
+# Previous button should now be visible
+- assertVisible:
+    id: "tutorial-prev-button"
+
+# Go back to first step
+- tapOn:
+    id: "tutorial-prev-button"
+- assertVisible: "The Board"
+- assertVisible: "1 / 7"
+
+# Navigate through all steps to the end
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "2 / 7"
+
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "3 / 7"
+
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "4 / 7"
+
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "5 / 7"
+
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "6 / 7"
+
+- tapOn:
+    id: "tutorial-next-button"
+- assertVisible: "7 / 7"
+
+# Last step: "Start Playing!" button should appear
+- assertVisible:
+    id: "tutorial-start-button"
+
+# Tapping "Start Playing!" returns to welcome screen
+- tapOn:
+    id: "tutorial-start-button"
+- assertVisible:
+    id: "welcome-title"

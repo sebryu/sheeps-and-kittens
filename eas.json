@@ -16,6 +16,17 @@
     "production": {
       "autoIncrement": true,
       "channel": "production"
+    },
+    "e2e": {
+      "distribution": "internal",
+      "channel": "e2e",
+      "android": {
+        "buildType": "apk",
+        "withoutCredentials": true
+      },
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {

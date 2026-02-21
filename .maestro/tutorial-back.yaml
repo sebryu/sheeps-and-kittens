@@ -1,0 +1,19 @@
+appId: com.sebryu.sheepsandkittens
+name: Tutorial Back Button
+---
+# Verify tutorial back button returns to welcome
+
+- assertVisible:
+    id: "welcome-title"
+
+- tapOn:
+    id: "tutorial-button"
+
+- assertVisible:
+    id: "tutorial-header"
+
+- tapOn:
+    id: "tutorial-back-button"
+
+- assertVisible:
+    id: "welcome-title"
