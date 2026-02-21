@@ -14,9 +14,10 @@ import { GameConfig, GameMode, Difficulty } from '../engine/gameEngine';
 interface WelcomeScreenProps {
   onPlay: (config: GameConfig) => void;
   onTutorial: () => void;
+  onAssetPreview?: () => void;
 }
 
-export default function WelcomeScreen({ onPlay, onTutorial }: WelcomeScreenProps) {
+export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: WelcomeScreenProps) {
   const bounceAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const sheepAnim = useRef(new Animated.Value(-50)).current;
@@ -212,6 +213,12 @@ export default function WelcomeScreen({ onPlay, onTutorial }: WelcomeScreenProps
         </TouchableOpacity>
 
         <Text style={styles.footer}>{footerText}</Text>
+
+        {onAssetPreview && (
+          <TouchableOpacity style={styles.debugButton} onPress={onAssetPreview} activeOpacity={0.7}>
+            <Text style={styles.debugButtonText}>Asset Preview (DEV)</Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -424,5 +431,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#BDBDBD',
     marginTop: 20,
+  },
+  debugButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BDBDBD',
+    borderStyle: 'dashed',
+  },
+  debugButtonText: {
+    fontSize: 12,
+    color: '#BDBDBD',
   },
 });

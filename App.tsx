@@ -6,7 +6,12 @@ import GameScreen from './src/components/GameScreen';
 import TutorialScreen from './src/components/TutorialScreen';
 import { GameConfig } from './src/engine/gameEngine';
 
-type Screen = 'welcome' | 'game' | 'tutorial';
+type Screen = 'welcome' | 'game' | 'tutorial' | 'assetPreview';
+
+// Lazy-load AssetPreview only in dev builds
+const AssetPreview = __DEV__
+  ? require('./src/components/AssetPreview').default
+  : null;
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('welcome');
@@ -23,8 +28,14 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {screen === 'welcome' ? (
-        <WelcomeScreen onPlay={handlePlay} onTutorial={() => setScreen('tutorial')} />
+      {screen === 'assetPreview' && AssetPreview ? (
+        <AssetPreview onBack={() => setScreen('welcome')} />
+      ) : screen === 'welcome' ? (
+        <WelcomeScreen
+          onPlay={handlePlay}
+          onTutorial={() => setScreen('tutorial')}
+          onAssetPreview={__DEV__ ? () => setScreen('assetPreview') : undefined}
+        />
       ) : screen === 'tutorial' ? (
         <TutorialScreen onBack={() => setScreen('welcome')} />
       ) : (
