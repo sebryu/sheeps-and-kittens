@@ -43,3 +43,10 @@ package-lock.json
 # generated native folders
 /ios
 /android
+
+# Maestro
+maestro-report.xml
+
+# Build artifacts (e2e)
+*.apk
+*.tar.gz

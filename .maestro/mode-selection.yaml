@@ -1,0 +1,46 @@
+appId: com.sebryu.sheepsandkittens
+name: Game Mode Selection
+---
+# Verify mode selection and difficulty toggle
+
+- assertVisible:
+    id: "welcome-title"
+
+# Difficulty should NOT be visible in local mode (default)
+- assertNotVisible: "Difficulty"
+
+# Select AI mode (play as Sheep vs AI Kittens)
+- tapOn:
+    id: "mode-ai-kitty"
+
+# Difficulty selector should now appear
+- assertVisible: "Difficulty"
+- assertVisible:
+    id: "difficulty-easy"
+- assertVisible:
+    id: "difficulty-medium"
+- assertVisible:
+    id: "difficulty-hard"
+
+# Footer should update for AI mode
+- assertVisible:
+    text: ".*AI.*medium difficulty.*"
+    regex: true
+
+# Change difficulty
+- tapOn:
+    id: "difficulty-hard"
+- assertVisible:
+    text: ".*AI.*hard difficulty.*"
+    regex: true
+
+# Switch to other AI mode
+- tapOn:
+    id: "mode-ai-sheep"
+- assertVisible: "You play as Kittens"
+
+# Switch back to local — difficulty should hide
+- tapOn:
+    id: "mode-local"
+- assertNotVisible: "Difficulty"
+- assertVisible: "Two players - take turns on the same device"

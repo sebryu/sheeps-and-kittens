@@ -96,7 +96,7 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
               <KittenPiece size={64} />
             </Animated.View>
           </View>
-          <Text style={styles.title}>Sheeps & Kittens</Text>
+          <Text testID="welcome-title" style={styles.title}>Sheeps & Kittens</Text>
           <Text style={styles.subtitle}>A BaghChal Board Game</Text>
         </View>
 
@@ -142,6 +142,7 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
         <View style={styles.modeCard}>
           <Text style={styles.modeTitle}>Game Mode</Text>
           <TouchableOpacity
+            testID="mode-local"
             style={[styles.modeOption, selectedMode === 'local' && styles.modeOptionActive]}
             onPress={() => setSelectedMode('local')}
             activeOpacity={0.7}
@@ -151,6 +152,7 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="mode-ai-kitty"
             style={[styles.modeOption, selectedMode === 'ai-kitty' && styles.modeOptionActive]}
             onPress={() => setSelectedMode('ai-kitty')}
             activeOpacity={0.7}
@@ -165,6 +167,7 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="mode-ai-sheep"
             style={[styles.modeOption, selectedMode === 'ai-sheep' && styles.modeOptionActive]}
             onPress={() => setSelectedMode('ai-sheep')}
             activeOpacity={0.7}
@@ -186,6 +189,7 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
               <View style={styles.difficultyRow}>
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((diff) => (
                   <TouchableOpacity
+                    testID={`difficulty-${diff}`}
                     key={diff}
                     style={[styles.difficultyPill, selectedDifficulty === diff && styles.difficultyPillActive]}
                     onPress={() => setSelectedDifficulty(diff)}
@@ -203,12 +207,12 @@ export default function WelcomeScreen({ onPlay, onTutorial, onAssetPreview }: We
 
         {/* Play button */}
         <Animated.View style={{ transform: [{ translateY: bounceAnim }] }}>
-          <TouchableOpacity style={styles.playButton} onPress={handlePlay} activeOpacity={0.8}>
+          <TouchableOpacity testID="play-button" style={styles.playButton} onPress={handlePlay} activeOpacity={0.8}>
             <Text style={styles.playButtonText}>Play Game</Text>
           </TouchableOpacity>
         </Animated.View>
 
-        <TouchableOpacity style={styles.tutorialButton} onPress={onTutorial} activeOpacity={0.7}>
+        <TouchableOpacity testID="tutorial-button" style={styles.tutorialButton} onPress={onTutorial} activeOpacity={0.7}>
           <Text style={styles.tutorialButtonText}>How to Play</Text>
         </TouchableOpacity>
 

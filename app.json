@@ -13,9 +13,11 @@
       "backgroundColor": "#FFF8E1"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sebryu.sheepsandkittens"
     },
     "android": {
+      "package": "com.sebryu.sheepsandkittens",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

@@ -774,10 +774,10 @@ export default function TutorialScreen({ onBack }: TutorialScreenProps) {
       <Animated.View style={[styles.innerContainer, { opacity: fadeAnim }]}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
+          <TouchableOpacity testID="tutorial-back-button" style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
             <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>How to Play</Text>
+          <Text testID="tutorial-header" style={styles.headerTitle}>How to Play</Text>
           <View style={styles.headerSpacer} />
         </View>
 
@@ -834,6 +834,7 @@ export default function TutorialScreen({ onBack }: TutorialScreenProps) {
         <View style={styles.navRow}>
           {!isFirst ? (
             <TouchableOpacity
+              testID="tutorial-prev-button"
               style={styles.navButton}
               onPress={() => goToStep(currentStep - 1)}
               activeOpacity={0.7}
@@ -846,6 +847,7 @@ export default function TutorialScreen({ onBack }: TutorialScreenProps) {
 
           {!isLast ? (
             <TouchableOpacity
+              testID="tutorial-next-button"
               style={[styles.navButton, styles.nextButton]}
               onPress={() => goToStep(currentStep + 1)}
               activeOpacity={0.7}
@@ -856,6 +858,7 @@ export default function TutorialScreen({ onBack }: TutorialScreenProps) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
+              testID="tutorial-start-button"
               style={[styles.navButton, styles.startButton]}
               onPress={onBack}
               activeOpacity={0.7}
