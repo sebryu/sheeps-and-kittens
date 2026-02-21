@@ -4,13 +4,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import WelcomeScreen from './src/components/WelcomeScreen';
 import GameScreen from './src/components/GameScreen';
 import TutorialScreen from './src/components/TutorialScreen';
-import AssetPreview from './src/components/AssetPreview';
 import { GameConfig } from './src/engine/gameEngine';
 
-type Screen = 'welcome' | 'game' | 'tutorial' | 'assetPreview';
+type Screen = 'welcome' | 'game' | 'tutorial';
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('assetPreview');
+  const [screen, setScreen] = useState<Screen>('welcome');
   const [gameConfig, setGameConfig] = useState<GameConfig>({
     mode: 'local',
     difficulty: 'medium',
@@ -24,9 +23,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {screen === 'assetPreview' ? (
-        <AssetPreview onBack={() => setScreen('welcome')} />
-      ) : screen === 'welcome' ? (
+      {screen === 'welcome' ? (
         <WelcomeScreen onPlay={handlePlay} onTutorial={() => setScreen('tutorial')} />
       ) : screen === 'tutorial' ? (
         <TutorialScreen onBack={() => setScreen('welcome')} />
