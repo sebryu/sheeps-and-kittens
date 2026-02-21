@@ -134,6 +134,7 @@ function BoardCell({
 
   return (
     <TouchableOpacity
+      testID={`cell-${row}-${col}`}
       style={[
         styles.intersection,
         {

@@ -8,7 +8,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "generate-sounds": "bun scripts/generate-sounds.js",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install chromium --with-deps"
   },
   "dependencies": {
     "expo": "^55.0.0-preview.11",
@@ -23,6 +26,7 @@
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.10",
     "jest": "^30.2.0",

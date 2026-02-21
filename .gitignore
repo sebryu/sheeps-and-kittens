@@ -43,3 +43,9 @@ package-lock.json
 # generated native folders
 /ios
 /android
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

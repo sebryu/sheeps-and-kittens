@@ -323,11 +323,11 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <TouchableOpacity testID="game-back-button" style={styles.backButton} onPress={onBack}>
           <Text style={styles.backButtonText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Sheeps & Kittens</Text>
-        <TouchableOpacity style={styles.restartButton} onPress={onRestart}>
+        <Text testID="game-title" style={styles.title}>Sheeps & Kittens</Text>
+        <TouchableOpacity testID="restart-button" style={styles.restartButton} onPress={onRestart}>
           <Text style={styles.restartButtonText}>↻</Text>
         </TouchableOpacity>
       </View>
@@ -359,7 +359,7 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
         </View>
 
         {/* Status Bar */}
-        <View style={[styles.statusBar, gameState.winner && styles.winnerStatusBar]}>
+        <View testID="status-bar" style={[styles.statusBar, gameState.winner && styles.winnerStatusBar]}>
           <Animated.Text
             style={[
               styles.statusText,
@@ -376,14 +376,14 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
 
         {/* Phase indicator */}
         <View style={styles.phaseBar}>
-          <Text style={styles.phaseText}>
+          <Text testID="phase-indicator" style={styles.phaseText}>
             Phase: {gameState.phase === 'PLACEMENT' ? '🏗 Placement' : '♟ Movement'}
           </Text>
         </View>
 
         {/* Forfeit button */}
         {!gameState.winner && (
-          <TouchableOpacity style={styles.forfeitButton} onPress={onForfeit}>
+          <TouchableOpacity testID="forfeit-button" style={styles.forfeitButton} onPress={onForfeit}>
             <Text style={styles.forfeitButtonText}>🏳 Forfeit</Text>
           </TouchableOpacity>
         )}
@@ -413,12 +413,14 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
             <Text style={styles.modalSubtitle}>{getWinSubtitle()}</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
+                testID="play-again-button"
                 style={[styles.modalButton, styles.playAgainButton]}
                 onPress={onRestart}
               >
                 <Text style={styles.playAgainText}>Play Again</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                testID="menu-button"
                 style={[styles.modalButton, styles.menuButton]}
                 onPress={onBack}
               >
