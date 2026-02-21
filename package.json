@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "generate-sounds": "node scripts/generate-sounds.js",
+    "generate-sounds": "bun scripts/generate-sounds.js",
     "test": "jest"
   },
   "dependencies": {
@@ -29,5 +29,6 @@
     "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "packageManager": "bun@1.3.9"
 }

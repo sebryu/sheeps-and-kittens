@@ -6,7 +6,10 @@ let Haptics: typeof import('expo-haptics') | null = null;
 if (Platform.OS !== 'web') {
   try {
     Haptics = require('expo-haptics');
-  } catch {
+  } catch (e) {
+    if (__DEV__) {
+      console.warn('[haptics] Failed to load expo-haptics:', e);
+    }
     Haptics = null;
   }
 }

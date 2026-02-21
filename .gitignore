@@ -25,6 +25,10 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+bun-error.log
+
+# npm lockfile (project uses bun)
+package-lock.json
 
 # macOS
 .DS_Store
