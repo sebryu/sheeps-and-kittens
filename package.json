@@ -11,6 +11,7 @@
     "test": "jest",
     "test:e2e": "maestro test .maestro/",
     "test:e2e:one": "maestro test",
+    "build:web": "expo export --platform web",
     "build:e2e:android": "eas build --platform android --profile e2e --local --output app.apk",
     "build:e2e:ios": "eas build --platform ios --profile e2e --local --output app.tar.gz"
   },
