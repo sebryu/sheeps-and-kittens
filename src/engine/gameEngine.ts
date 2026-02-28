@@ -1,146 +1,12 @@
-export type Piece = 'EMPTY' | 'KITTY' | 'SHEEP';
-export type Turn = 'SHEEP' | 'KITTY';
-export type Phase = 'PLACEMENT' | 'MOVEMENT';
-export type Position = [number, number];
-export type GameMode = 'local' | 'ai-sheep' | 'ai-kitty';
-export type Difficulty = 'easy' | 'medium' | 'hard';
+// Re-export types, constants, and board operations for backward compatibility.
+// Consumers can import from these sub-modules directly for more granular access.
+export type { Piece, Turn, Phase, Position, GameMode, Difficulty, GameConfig, GameMove, GameState } from './types';
+export { BOARD_SIZE, TOTAL_SHEEP, SHEEP_TO_WIN } from './constants';
+export { isInBounds, hasDiagonals, getNeighbors, getCaptureTargets, getValidMovesForPiece } from './boardOps';
 
-export interface GameConfig {
-  mode: GameMode;
-  difficulty: Difficulty;
-}
-
-export interface GameMove {
-  type: 'place' | 'move' | 'capture';
-  from?: Position;
-  to: Position;
-  captured?: Position;
-}
-
-export interface GameState {
-  board: Piece[][];
-  turn: Turn;
-  phase: Phase;
-  sheepPlaced: number;
-  sheepCaptured: number;
-  selectedPiece: Position | null;
-  winner: Turn | null;
-  forfeitedBy: Turn | null;
-  validMoves: Position[];
-  lastMove: GameMove | null;
-}
-
-const BOARD_SIZE = 5;
-const TOTAL_SHEEP = 20;
-const SHEEP_TO_WIN = 5;
-
-function isInBounds(r: number, c: number): boolean {
-  return r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE;
-}
-
-function hasDiagonals(r: number, c: number): boolean {
-  return (r + c) % 2 === 0;
-}
-
-export function getNeighbors(r: number, c: number): Position[] {
-  const neighbors: Position[] = [];
-  // Orthogonal
-  const orthoDirs: Position[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-  for (const [dr, dc] of orthoDirs) {
-    const nr = r + dr;
-    const nc = c + dc;
-    if (isInBounds(nr, nc)) {
-      neighbors.push([nr, nc]);
-    }
-  }
-  // Diagonals (only if (r+c) is even)
-  if (hasDiagonals(r, c)) {
-    const diagDirs: Position[] = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
-    for (const [dr, dc] of diagDirs) {
-      const nr = r + dr;
-      const nc = c + dc;
-      if (isInBounds(nr, nc)) {
-        neighbors.push([nr, nc]);
-      }
-    }
-  }
-  return neighbors;
-}
-
-export function getCaptureTargets(board: Piece[][], r: number, c: number): { to: Position; captured: Position }[] {
-  const targets: { to: Position; captured: Position }[] = [];
-  if (board[r][c] !== 'KITTY') return targets;
-
-  // Orthogonal captures
-  const allDirs: Position[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-  // Diagonal captures (only if source has diagonals)
-  if (hasDiagonals(r, c)) {
-    allDirs.push([-1, -1], [-1, 1], [1, -1], [1, 1]);
-  }
-
-  for (const [dr, dc] of allDirs) {
-    const midR = r + dr;
-    const midC = c + dc;
-    const destR = r + 2 * dr;
-    const destC = c + 2 * dc;
-
-    if (
-      isInBounds(midR, midC) &&
-      isInBounds(destR, destC) &&
-      board[midR][midC] === 'SHEEP' &&
-      board[destR][destC] === 'EMPTY'
-    ) {
-      // Verify the mid-to-dest connection exists on the board
-      // The mid point must connect to dest: either orthogonal (always) or diagonal (if mid has diags)
-      const isDiagJump = dr !== 0 && dc !== 0;
-      if (!isDiagJump || hasDiagonals(midR, midC)) {
-        targets.push({ to: [destR, destC], captured: [midR, midC] });
-      }
-    }
-  }
-  return targets;
-}
-
-export function createInitialState(): GameState {
-  const board: Piece[][] = Array.from({ length: BOARD_SIZE }, () =>
-    Array(BOARD_SIZE).fill('EMPTY')
-  );
-  // Place 4 kittens at corners
-  board[0][0] = 'KITTY';
-  board[0][4] = 'KITTY';
-  board[4][0] = 'KITTY';
-  board[4][4] = 'KITTY';
-
-  return {
-    board,
-    turn: 'SHEEP',
-    phase: 'PLACEMENT',
-    sheepPlaced: 0,
-    sheepCaptured: 0,
-    selectedPiece: null,
-    winner: null,
-    forfeitedBy: null,
-    validMoves: [],
-    lastMove: null,
-  };
-}
-
-export function getValidMovesForPiece(board: Piece[][], r: number, c: number, piece: Piece): Position[] {
-  const moves: Position[] = [];
-  const neighbors = getNeighbors(r, c);
-  for (const [nr, nc] of neighbors) {
-    if (board[nr][nc] === 'EMPTY') {
-      moves.push([nr, nc]);
-    }
-  }
-  if (piece === 'KITTY') {
-    const captures = getCaptureTargets(board, r, c);
-    for (const cap of captures) {
-      moves.push(cap.to);
-    }
-  }
-  return moves;
-}
+import { Piece, Turn, Phase, Position, GameMove, GameState } from './types';
+import { BOARD_SIZE, TOTAL_SHEEP, SHEEP_TO_WIN } from './constants';
+import { getNeighbors, getCaptureTargets, getValidMovesForPiece } from './boardOps';
 
 function checkKittensBlocked(board: Piece[][]): boolean {
   for (let r = 0; r < BOARD_SIZE; r++) {
@@ -166,6 +32,30 @@ function checkSheepHaveMoves(board: Piece[][]): boolean {
     }
   }
   return false;
+}
+
+export function createInitialState(): GameState {
+  const board: Piece[][] = Array.from({ length: BOARD_SIZE }, () =>
+    Array(BOARD_SIZE).fill('EMPTY')
+  );
+  // Place 4 kittens at corners
+  board[0][0] = 'KITTY';
+  board[0][4] = 'KITTY';
+  board[4][0] = 'KITTY';
+  board[4][4] = 'KITTY';
+
+  return {
+    board,
+    turn: 'SHEEP',
+    phase: 'PLACEMENT',
+    sheepPlaced: 0,
+    sheepCaptured: 0,
+    selectedPiece: null,
+    winner: null,
+    forfeitedBy: null,
+    validMoves: [],
+    lastMove: null,
+  };
 }
 
 export function handleTap(state: GameState, row: number, col: number): GameState {

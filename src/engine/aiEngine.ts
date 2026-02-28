@@ -1,17 +1,7 @@
-import {
-  GameState,
-  GameMove,
-  Piece,
-  Turn,
-  Difficulty,
-  Position,
-  getNeighbors,
-  getCaptureTargets,
-  getValidMovesForPiece,
-  applyMove,
-} from './gameEngine';
-
-const BOARD_SIZE = 5;
+import { GameState, GameMove, Piece, Turn, Difficulty, Position } from './types';
+import { BOARD_SIZE } from './constants';
+import { getNeighbors, getCaptureTargets, getValidMovesForPiece } from './boardOps';
+import { applyMove } from './gameEngine';
 
 const DEPTH_MAP: Record<Difficulty, number> = {
   easy: 2,

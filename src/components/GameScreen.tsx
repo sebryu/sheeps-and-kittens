@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   ScrollView,
   Animated,
   Alert,
@@ -12,18 +11,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Board from './Board';
 import { SheepPiece, KittenPiece } from './Pieces';
+import WinModal from './WinModal';
+import { GameState, GameConfig } from '../engine/types';
 import {
-  GameState,
-  GameConfig,
   createInitialState,
   handleTap,
   getGameStatusText,
-  applyMove,
   forfeitGame,
 } from '../engine/gameEngine';
-import { findBestMove } from '../engine/aiEngine';
-import { triggerHaptic } from '../utils/haptics';
 import { loadAllSounds, playSound, unloadAllSounds } from '../utils/sounds';
+import { triggerHaptic } from '../utils/haptics';
+import { colors } from '../theme';
+import { useGameEvents } from '../hooks/useGameEvents';
+import { useAIPlayer } from '../hooks/useAIPlayer';
 
 interface GameScreenProps {
   onBack: () => void;
@@ -41,52 +41,18 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
   gameStateRef.current = gameState;
 
   // ── Animated values ────────────────────────────────────────────────
-  // Win modal: springs from small scale into full size
   const winModalScale = useRef(new Animated.Value(0.5)).current;
   const winOverlayOpacity = useRef(new Animated.Value(0)).current;
-
-  // Score bump when sheepCaptured increments
   const scoreBumpScale = useRef(new Animated.Value(1)).current;
-
-  // Phase banner: slides down from above, then back up
   const phaseBannerY = useRef(new Animated.Value(-60)).current;
   const phaseBannerOpacity = useRef(new Animated.Value(0)).current;
-
-  // AI thinking status text pulse
   const aiPulseOpacity = useRef(new Animated.Value(1)).current;
-  const aiPulseLoop = useRef<Animated.CompositeAnimation | null>(null);
 
   // ── Sound loading ──────────────────────────────────────────────────
   useEffect(() => {
     loadAllSounds();
     return () => { unloadAllSounds(); };
   }, []);
-
-  // ── AI thinking pulse ──────────────────────────────────────────────
-  useEffect(() => {
-    if (isAIThinking) {
-      aiPulseOpacity.setValue(0.4);
-      aiPulseLoop.current = Animated.loop(
-        Animated.sequence([
-          Animated.timing(aiPulseOpacity, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(aiPulseOpacity, {
-            toValue: 0.4,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      aiPulseLoop.current.start();
-    } else {
-      aiPulseLoop.current?.stop();
-      aiPulseLoop.current = null;
-      aiPulseOpacity.setValue(1);
-    }
-  }, [isAIThinking]);
 
   // ── Phase banner helper ────────────────────────────────────────────
   const showPhaseBanner = useCallback(() => {
@@ -123,117 +89,14 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     ]).start(() => setPhaseBannerVisible(false));
   }, []);
 
-  // ── Game event detection ───────────────────────────────────────────
-  const prevGameStateRef = useRef<GameState | null>(null);
+  // ── Game event detection (sounds, haptics, animations) ─────────────
+  useGameEvents(gameState, { winModalScale, winOverlayOpacity, scoreBumpScale }, showPhaseBanner);
 
-  useEffect(() => {
-    const prev = prevGameStateRef.current;
-    const curr = gameState;
-    prevGameStateRef.current = curr;
-
-    if (!prev) return;
-
-    // Win
-    if (!prev.winner && curr.winner) {
-      triggerHaptic('win');
-      playSound('win');
-      winModalScale.setValue(0.5);
-      winOverlayOpacity.setValue(0);
-      Animated.parallel([
-        Animated.spring(winModalScale, {
-          toValue: 1,
-          friction: 5,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-        Animated.timing(winOverlayOpacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-      return;
-    }
-
-    // Phase transition (Placement → Movement)
-    if (prev.phase !== curr.phase && curr.phase === 'MOVEMENT') {
-      triggerHaptic('phaseChange');
-      showPhaseBanner();
-    }
-
-    // Score bump on capture
-    if (curr.sheepCaptured > prev.sheepCaptured) {
-      scoreBumpScale.setValue(1);
-      Animated.sequence([
-        Animated.timing(scoreBumpScale, {
-          toValue: 1.5,
-          duration: 120,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scoreBumpScale, {
-          toValue: 1,
-          friction: 3,
-          tension: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-
-    // Selection event (new selection, no lastMove change)
-    if (!prev.selectedPiece && curr.selectedPiece) {
-      triggerHaptic('select');
-      playSound('select');
-      return;
-    }
-
-    // Move events
-    const move = curr.lastMove;
-    if (!move || move === prev.lastMove) return;
-
-    switch (move.type) {
-      case 'place':
-        triggerHaptic('place');
-        playSound('place');
-        break;
-      case 'move':
-        triggerHaptic('move');
-        playSound('move');
-        break;
-      case 'capture':
-        triggerHaptic('capture');
-        playSound('capture');
-        break;
-    }
-  }, [gameState]);
-
-  // ── AI move ────────────────────────────────────────────────────────
-  const isAITurn = (state: GameState) =>
-    (gameConfig.mode === 'ai-sheep' && state.turn === 'SHEEP') ||
-    (gameConfig.mode === 'ai-kitty' && state.turn === 'KITTY');
-
-  useEffect(() => {
-    if (gameConfig.mode === 'local') return;
-    if (!isAITurn(gameState)) return;
-    if (gameState.winner) return;
-
-    setIsAIThinking(true);
-
-    const timer = setTimeout(() => {
-      setGameState(prev => {
-        const bestMove = findBestMove(prev, gameConfig.difficulty);
-        if (bestMove) {
-          return applyMove(prev, bestMove);
-        }
-        return prev;
-      });
-      setIsAIThinking(false);
-    }, 600);
-
-    return () => {
-      clearTimeout(timer);
-      setIsAIThinking(false);
-    };
-  }, [gameState.turn, gameState.winner, gameConfig.mode, gameConfig.difficulty]);
+  // ── AI player ──────────────────────────────────────────────────────
+  const { isAITurn } = useAIPlayer(
+    gameState, gameConfig, setGameState,
+    isAIThinking, setIsAIThinking, aiPulseOpacity,
+  );
 
   // ── Board tap ──────────────────────────────────────────────────────
   const onBoardTap = useCallback((row: number, col: number) => {
@@ -241,7 +104,6 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     const curr = gameStateRef.current;
     if (isAITurn(curr)) return;
     const next = handleTap(curr, row, col);
-    // Trigger invalid-tap feedback before updating state (no side effects in updater).
     if (next === curr) {
       triggerHaptic('invalid');
       playSound('invalid');
@@ -283,25 +145,6 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
     : getGameStatusText(gameState);
 
   const isSheepTurn = gameState.turn === 'SHEEP';
-
-  const getWinTitle = () => {
-    if (gameConfig.mode === 'local') {
-      return gameState.winner === 'SHEEP' ? 'Sheeps Win!' : 'Kittens Win!';
-    }
-    const humanSide = gameConfig.mode === 'ai-sheep' ? 'KITTY' : 'SHEEP';
-    return gameState.winner === humanSide ? 'You Win!' : 'You Lose!';
-  };
-
-  const getWinSubtitle = () => {
-    if (gameState.forfeitedBy) {
-      const side = gameState.forfeitedBy === 'SHEEP' ? 'Sheeps' : 'Kittens';
-      return `${side} forfeited the game.`;
-    }
-    if (gameState.winner === 'SHEEP') {
-      return 'All kittens have been blocked!';
-    }
-    return `${gameState.sheepCaptured} sheeps were captured!`;
-  };
 
   // ── Render ─────────────────────────────────────────────────────────
   return (
@@ -390,46 +233,14 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
       </ScrollView>
 
       {/* Win Modal */}
-      <Modal
-        visible={gameState.winner !== null}
-        transparent
-        animationType="none"
-      >
-        <Animated.View style={[styles.modalOverlay, { opacity: winOverlayOpacity }]}>
-          <Animated.View
-            style={[
-              styles.modalContent,
-              { transform: [{ scale: winModalScale }] },
-            ]}
-          >
-            <View style={styles.modalPiece}>
-              {gameState.winner === 'SHEEP' ? (
-                <SheepPiece size={80} />
-              ) : (
-                <KittenPiece size={80} />
-              )}
-            </View>
-            <Text style={styles.modalTitle}>{getWinTitle()}</Text>
-            <Text style={styles.modalSubtitle}>{getWinSubtitle()}</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                testID="play-again-button"
-                style={[styles.modalButton, styles.playAgainButton]}
-                onPress={onRestart}
-              >
-                <Text style={styles.playAgainText}>Play Again</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                testID="menu-button"
-                style={[styles.modalButton, styles.menuButton]}
-                onPress={onBack}
-              >
-                <Text style={styles.menuButtonText}>Menu</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </Animated.View>
-      </Modal>
+      <WinModal
+        gameState={gameState}
+        gameConfig={gameConfig}
+        winModalScale={winModalScale}
+        winOverlayOpacity={winOverlayOpacity}
+        onRestart={onRestart}
+        onBack={onBack}
+      />
     </SafeAreaView>
   );
 }
@@ -437,7 +248,7 @@ export default function GameScreen({ onBack, gameConfig }: GameScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E1',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -448,7 +259,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    backgroundColor: '#FFC107',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
     alignItems: 'center',
     shadowColor: '#000',
@@ -460,7 +271,7 @@ const styles = StyleSheet.create({
   phaseBannerText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#3E2723',
+    color: colors.textPrimary,
   },
   header: {
     flexDirection: 'row',
@@ -475,20 +286,20 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#5D4037',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#3E2723',
+    color: colors.textPrimary,
   },
   restartButton: {
     padding: 8,
   },
   restartButtonText: {
     fontSize: 24,
-    color: '#5D4037',
+    color: colors.textSecondary,
   },
   scorePanel: {
     flexDirection: 'row',
@@ -500,7 +311,7 @@ const styles = StyleSheet.create({
   scoreCard: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 10,
     shadowColor: '#000',
@@ -509,16 +320,16 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: colors.cardBorder,
   },
   activeScoreCard: {
-    borderColor: '#FFC107',
-    backgroundColor: '#FFFDE7',
+    borderColor: colors.accent,
+    backgroundColor: colors.surfaceLight,
   },
   scoreLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#3E2723',
+    color: colors.textPrimary,
     marginTop: 2,
   },
   scoreDetail: {
@@ -532,10 +343,10 @@ const styles = StyleSheet.create({
   vsText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#BDBDBD',
+    color: colors.textMuted,
   },
   statusBar: {
-    backgroundColor: '#EFEBE9',
+    backgroundColor: colors.inactive,
     paddingVertical: 10,
     paddingHorizontal: 20,
     marginHorizontal: 20,
@@ -543,16 +354,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   winnerStatusBar: {
-    backgroundColor: '#C8E6C9',
+    backgroundColor: colors.successLight,
   },
   statusText: {
     fontSize: 15,
-    color: '#5D4037',
+    color: colors.textSecondary,
     fontWeight: '600',
     textAlign: 'center',
   },
   winnerStatusText: {
-    color: '#2E7D32',
+    color: colors.successDark,
     fontWeight: 'bold',
   },
   phaseBar: {
@@ -561,67 +372,8 @@ const styles = StyleSheet.create({
   },
   phaseText: {
     fontSize: 14,
-    color: '#8D6E63',
+    color: colors.textTertiary,
     fontWeight: '500',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#FFF8E1',
-    borderRadius: 24,
-    padding: 32,
-    alignItems: 'center',
-    width: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  modalPiece: {
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#3E2723',
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: '#5D4037',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  playAgainButton: {
-    backgroundColor: '#4CAF50',
-  },
-  playAgainText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  menuButton: {
-    backgroundColor: '#EFEBE9',
-  },
-  menuButtonText: {
-    color: '#5D4037',
-    fontSize: 16,
-    fontWeight: '600',
   },
   forfeitButton: {
     alignSelf: 'center',
@@ -630,11 +382,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#FFCDD2',
-    backgroundColor: '#FFF3F3',
+    borderColor: colors.dangerLight,
+    backgroundColor: colors.dangerSurface,
   },
   forfeitButtonText: {
-    color: '#C62828',
+    color: colors.danger,
     fontSize: 14,
     fontWeight: '500',
   },

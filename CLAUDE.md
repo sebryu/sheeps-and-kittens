@@ -12,11 +12,34 @@ BaghChal (Nepali board game) re-themed: goats → sheeps (🐑), tigers → kitt
 
 ## Project Structure
 ```
-src/engine/gameEngine.ts      - Game logic (adjacency, moves, captures, win conditions)
-src/components/Board.tsx      - Board rendering (grid, diagonals, pieces, touch input)
-src/components/GameScreen.tsx - Game screen (scores, status, win modal)
-src/components/WelcomeScreen.tsx  - Welcome screen with rules and animations
-src/components/TutorialScreen.tsx - Interactive step-by-step tutorial
+src/
+├── engine/
+│   ├── types.ts              - Type definitions (Piece, Turn, GameState, GameConfig, etc.)
+│   ├── constants.ts          - Game constants (BOARD_SIZE, TOTAL_SHEEP, SHEEP_TO_WIN)
+│   ├── boardOps.ts           - Board operations (adjacency, captures, valid moves)
+│   ├── gameEngine.ts         - Game state transitions (handleTap, applyMove, forfeit)
+│   │                           Also re-exports types/constants/boardOps for convenience
+│   └── aiEngine.ts           - AI opponent (minimax + alpha-beta pruning)
+├── components/
+│   ├── Board.tsx             - Board container (layout, piece diffing)
+│   ├── BoardCell.tsx         - Individual cell (piece rendering, animations)
+│   ├── BoardLines.tsx        - Grid and diagonal line rendering
+│   ├── GameScreen.tsx        - Game screen (scores, status, phase indicator)
+│   ├── MiniBoard.tsx         - Animated mini board for tutorial
+│   ├── Pieces.tsx            - SheepPiece and KittenPiece SVG-like components
+│   ├── WinModal.tsx          - Victory modal overlay
+│   ├── WelcomeScreen.tsx     - Welcome screen with rules and mode selection
+│   ├── TutorialScreen.tsx    - Step-by-step tutorial navigation
+│   ├── tutorialData.ts       - Tutorial step definitions and animation configs
+│   └── AssetPreview.tsx      - Dev-only piece preview at multiple sizes
+├── hooks/
+│   ├── useGameEvents.ts      - Game event detection (sounds, haptics, animations)
+│   └── useAIPlayer.ts        - AI move orchestration and thinking pulse
+├── utils/
+│   ├── boardLayout.ts        - Shared board dimensions (cell size, piece size)
+│   ├── haptics.ts            - Haptic feedback (expo-haptics wrapper)
+│   └── sounds.ts             - Sound playback (expo-av wrapper)
+└── theme.ts                  - Centralized color palette
 App.tsx                       - Root with SafeAreaProvider and screen navigation
 ```
 

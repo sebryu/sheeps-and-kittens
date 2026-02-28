@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SheepPiece, KittenPiece } from './Pieces';
-import { GameConfig, GameMode, Difficulty } from '../engine/gameEngine';
+import { GameConfig, GameMode, Difficulty } from '../engine/types';
 
 interface WelcomeScreenProps {
   onPlay: (config: GameConfig) => void;
