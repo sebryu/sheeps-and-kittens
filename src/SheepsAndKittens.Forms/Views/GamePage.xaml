@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                      xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+                      xmlns:controls="clr-namespace:SheepsAndKittens.Forms.Controls"
+                      xmlns:converters="clr-namespace:SheepsAndKittens.Forms.Converters"
+                      xmlns:vm="clr-namespace:SheepsAndKittens.Core.ViewModels;assembly=SheepsAndKittens.Core"
+                      x:Class="SheepsAndKittens.Forms.Views.GamePage"
+                      x:TypeArguments="vm:GameViewModel"
+                      BackgroundColor="{StaticResource BackgroundColor}"
+                      Title="Game">
+
+    <ContentPage.Resources>
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Padding="16">
+
+        <!-- Header Row -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="0,8">
+            <Button Grid.Column="0" Text="&#x2190; Back"
+                    Command="{Binding BackCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    FontSize="14" Padding="8,4" />
+            <Label Grid.Column="1" Text="Sheeps &amp; Kittens"
+                   Style="{StaticResource TitleLabel}" FontSize="20"
+                   VerticalTextAlignment="Center" />
+            <Button Grid.Column="2" Text="&#x21BB; Restart"
+                    Command="{Binding RestartCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    FontSize="14" Padding="8,4" />
+        </Grid>
+
+        <!-- Score Panel -->
+        <Frame Grid.Row="1" BackgroundColor="White" CornerRadius="10"
+               Padding="12" HasShadow="True" Margin="0,4">
+            <Grid ColumnDefinitions="*,Auto,*">
+                <!-- Sheep Score -->
+                <StackLayout Grid.Column="0" HorizontalOptions="Center">
+                    <Label Text="{Binding SheepLabel}" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource PrimaryText}"
+                           HorizontalTextAlignment="Center" />
+                    <Label FontSize="14" HorizontalTextAlignment="Center"
+                           TextColor="{StaticResource PrimaryText}">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="&#x1F411; Placed: " />
+                                <Span Text="{Binding SheepPlaced}" FontAttributes="Bold" />
+                                <Span Text="/20" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </StackLayout>
+
+                <BoxView Grid.Column="1" WidthRequest="1"
+                         BackgroundColor="#E0E0E0" VerticalOptions="Fill" />
+
+                <!-- Kitty Score -->
+                <StackLayout Grid.Column="2" HorizontalOptions="Center">
+                    <Label Text="{Binding KittyLabel}" FontSize="13"
+                           FontAttributes="Bold" TextColor="{StaticResource PrimaryText}"
+                           HorizontalTextAlignment="Center" />
+                    <Label FontSize="14" HorizontalTextAlignment="Center"
+                           TextColor="{StaticResource PrimaryText}">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="&#x1F431; Captures: " />
+                                <Span Text="{Binding SheepCaptured}" FontAttributes="Bold" />
+                                <Span Text="/5" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </StackLayout>
+            </Grid>
+        </Frame>
+
+        <!-- Status Bar -->
+        <Frame Grid.Row="2" BackgroundColor="#FFF3E0" CornerRadius="8"
+               Padding="8" HasShadow="False" Margin="0,4">
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="8">
+                <Label Text="{Binding StatusText}"
+                       Style="{StaticResource StatusLabel}" />
+                <ActivityIndicator IsRunning="{Binding IsAiThinking}"
+                                   IsVisible="{Binding IsAiThinking}"
+                                   WidthRequest="16" HeightRequest="16"
+                                   Color="{StaticResource AccentColor}" />
+            </StackLayout>
+        </Frame>
+
+        <!-- Board -->
+        <controls:BoardView Grid.Row="3"
+                            BoardState="{Binding BoardState}"
+                            ValidMoves="{Binding ValidMoves}"
+                            SelectedPiece="{Binding SelectedPiece}"
+                            TapCommand="{Binding TapCellCommand}"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center" />
+
+        <!-- Phase Indicator -->
+        <Frame Grid.Row="4" BackgroundColor="#EFEBE9" CornerRadius="8"
+               Padding="8,4" HasShadow="False" Margin="0,4"
+               HorizontalOptions="Center">
+            <Label FontSize="13" TextColor="{StaticResource PrimaryText}">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Phase: " />
+                        <Span Text="{Binding PhaseText}" FontAttributes="Bold" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </Frame>
+
+        <!-- Forfeit Button -->
+        <Button Grid.Row="5" Text="&#x1F3F3; Forfeit"
+                Command="{Binding ForfeitCommand}"
+                IsVisible="{Binding HasWinner, Converter={StaticResource InverseBool}}"
+                Style="{StaticResource SecondaryButton}"
+                HorizontalOptions="Center"
+                Margin="0,4,0,8" />
+
+        <!-- Win Modal Overlay -->
+        <Frame Grid.Row="0" Grid.RowSpan="6"
+               IsVisible="{Binding HasWinner}"
+               BackgroundColor="#80000000"
+               Padding="0" HasShadow="False">
+            <Frame BackgroundColor="White" CornerRadius="16"
+                   Padding="24" HasShadow="True"
+                   VerticalOptions="Center" HorizontalOptions="Center"
+                   WidthRequest="280">
+                <StackLayout Spacing="16">
+                    <Label Text="&#x1F3C6;" FontSize="48"
+                           HorizontalTextAlignment="Center" />
+                    <Label Text="{Binding WinnerText}"
+                           FontSize="20" FontAttributes="Bold"
+                           TextColor="{StaticResource PrimaryText}"
+                           HorizontalTextAlignment="Center" />
+                    <Button Text="Play Again"
+                            Command="{Binding RestartCommand}"
+                            Style="{StaticResource PrimaryButton}" />
+                    <Button Text="Back to Menu"
+                            Command="{Binding BackCommand}"
+                            Style="{StaticResource SecondaryButton}" />
+                </StackLayout>
+            </Frame>
+        </Frame>
+
+    </Grid>
+</views:MvxContentPage>

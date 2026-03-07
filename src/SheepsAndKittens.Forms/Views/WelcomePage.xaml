@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                      xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+                      xmlns:converters="clr-namespace:SheepsAndKittens.Forms.Converters"
+                      xmlns:vm="clr-namespace:SheepsAndKittens.Core.ViewModels;assembly=SheepsAndKittens.Core"
+                      x:Class="SheepsAndKittens.Forms.Views.WelcomePage"
+                      x:TypeArguments="vm:WelcomeViewModel"
+                      BackgroundColor="{StaticResource BackgroundColor}"
+                      Title="Sheeps &amp; Kittens">
+
+    <ContentPage.Resources>
+        <converters:EnumToBoolConverter x:Key="EnumToBool" />
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <StackLayout Padding="24" Spacing="20">
+
+            <!-- Title -->
+            <StackLayout Spacing="4" HorizontalOptions="Center">
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="8">
+                    <Label Text="&#x1F411;" FontSize="36" VerticalTextAlignment="Center" />
+                    <Label Text="Sheeps &amp; Kittens"
+                           Style="{StaticResource TitleLabel}"
+                           FontSize="32" />
+                    <Label Text="&#x1F431;" FontSize="36" VerticalTextAlignment="Center" />
+                </StackLayout>
+                <Label Text="A classic Nepali board game"
+                       FontSize="14"
+                       TextColor="#8D6E63"
+                       HorizontalTextAlignment="Center" />
+            </StackLayout>
+
+            <!-- Rules Card -->
+            <Frame BackgroundColor="White"
+                   CornerRadius="12"
+                   Padding="16"
+                   HasShadow="True">
+                <StackLayout Spacing="8">
+                    <Label Text="How to Play" FontSize="18" FontAttributes="Bold"
+                           TextColor="{StaticResource PrimaryText}" />
+                    <Label Text="&#x1F3C1;  5x5 board with diagonal connections"
+                           FontSize="14" TextColor="{StaticResource PrimaryText}" />
+                    <Label Text="&#x1F431;  4 Kittens start at corners"
+                           FontSize="14" TextColor="{StaticResource PrimaryText}" />
+                    <Label Text="&#x1F411;  Place 20 Sheeps one per turn"
+                           FontSize="14" TextColor="{StaticResource PrimaryText}" />
+                    <Label Text="&#x2694;  Kittens capture by jumping over Sheeps"
+                           FontSize="14" TextColor="{StaticResource PrimaryText}" />
+                    <Label Text="&#x1F3C6;  Kittens win: capture 5. Sheeps win: block all!"
+                           FontSize="14" TextColor="{StaticResource PrimaryText}" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Game Mode Selection -->
+            <Label Text="Game Mode" FontSize="18" FontAttributes="Bold"
+                   TextColor="{StaticResource PrimaryText}" HorizontalTextAlignment="Center" />
+
+            <StackLayout Spacing="8">
+                <Button Text="&#x1F465;  Local (Two Players)"
+                        Command="{Binding SelectLocalCommand}"
+                        Style="{StaticResource SecondaryButton}"
+                        BackgroundColor="{Binding SelectedMode, Converter={StaticResource EnumToBool}, ConverterParameter=Local}" />
+                <Button Text="&#x1F916;  vs AI Sheeps (You: Kittens)"
+                        Command="{Binding SelectAiSheepCommand}"
+                        Style="{StaticResource SecondaryButton}" />
+                <Button Text="&#x1F916;  vs AI Kittens (You: Sheeps)"
+                        Command="{Binding SelectAiKittyCommand}"
+                        Style="{StaticResource SecondaryButton}" />
+            </StackLayout>
+
+            <!-- Difficulty Selection (AI mode only) -->
+            <StackLayout IsVisible="{Binding IsAiMode}" Spacing="8">
+                <Label Text="Difficulty" FontSize="16" FontAttributes="Bold"
+                       TextColor="{StaticResource PrimaryText}" HorizontalTextAlignment="Center" />
+                <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Spacing="8">
+                    <Button Text="Easy" Command="{Binding SelectEasyCommand}"
+                            Style="{StaticResource SecondaryButton}" WidthRequest="80" />
+                    <Button Text="Medium" Command="{Binding SelectMediumCommand}"
+                            Style="{StaticResource SecondaryButton}" WidthRequest="80" />
+                    <Button Text="Hard" Command="{Binding SelectHardCommand}"
+                            Style="{StaticResource SecondaryButton}" WidthRequest="80" />
+                </StackLayout>
+            </StackLayout>
+
+            <!-- Mode Description -->
+            <Label Text="{Binding ModeDescription}"
+                   FontSize="13" FontAttributes="Italic"
+                   TextColor="#8D6E63"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Play Button -->
+            <Button Text="&#x25B6;  Play!"
+                    Command="{Binding PlayCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    HorizontalOptions="Center"
+                    WidthRequest="200" />
+
+            <!-- Tutorial Button -->
+            <Button Text="&#x1F4D6;  Tutorial"
+                    Command="{Binding TutorialCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    HorizontalOptions="Center"
+                    WidthRequest="200" />
+
+        </StackLayout>
+    </ScrollView>
+</views:MvxContentPage>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:MvxContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                      xmlns:views="clr-namespace:MvvmCross.Forms.Views;assembly=MvvmCross.Forms"
+                      xmlns:controls="clr-namespace:SheepsAndKittens.Forms.Controls"
+                      xmlns:converters="clr-namespace:SheepsAndKittens.Forms.Converters"
+                      xmlns:vm="clr-namespace:SheepsAndKittens.Core.ViewModels;assembly=SheepsAndKittens.Core"
+                      x:Class="SheepsAndKittens.Forms.Views.TutorialPage"
+                      x:TypeArguments="vm:TutorialViewModel"
+                      BackgroundColor="{StaticResource BackgroundColor}"
+                      Title="Tutorial">
+
+    <ContentPage.Resources>
+        <converters:InverseBoolConverter x:Key="InverseBool" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="0,8,0,4">
+            <Button Grid.Column="0" Text="&#x2190; Close"
+                    Command="{Binding CloseCommand}"
+                    Style="{StaticResource SecondaryButton}"
+                    FontSize="14" Padding="8,4" />
+            <Label Grid.Column="1" Text="Tutorial"
+                   Style="{StaticResource TitleLabel}" FontSize="20"
+                   VerticalTextAlignment="Center" />
+            <Label Grid.Column="2" Text="{Binding ProgressText}"
+                   FontSize="14" TextColor="#8D6E63"
+                   VerticalTextAlignment="Center" />
+        </Grid>
+
+        <!-- Content Area -->
+        <StackLayout Grid.Row="1" Spacing="16" VerticalOptions="Center">
+
+            <!-- Step Title -->
+            <Label Text="{Binding CurrentTutorialStep.Title}"
+                   FontSize="24" FontAttributes="Bold"
+                   TextColor="{StaticResource PrimaryText}"
+                   HorizontalTextAlignment="Center" />
+
+            <!-- Mini Board -->
+            <controls:BoardView BoardState="{Binding MiniBoard}"
+                                HighlightPositions="{Binding HighlightPositions}"
+                                HeightRequest="240" WidthRequest="240"
+                                HorizontalOptions="Center" />
+
+            <!-- Step Description -->
+            <Frame BackgroundColor="White" CornerRadius="12"
+                   Padding="16" HasShadow="True"
+                   Margin="8,0">
+                <Label Text="{Binding CurrentTutorialStep.Description}"
+                       FontSize="15" TextColor="{StaticResource PrimaryText}"
+                       LineBreakMode="WordWrap" />
+            </Frame>
+
+        </StackLayout>
+
+        <!-- Progress Dots -->
+        <StackLayout Grid.Row="2" Orientation="Horizontal"
+                     HorizontalOptions="Center" Spacing="8" Margin="0,8">
+            <!-- Dots generated in code-behind -->
+        </StackLayout>
+
+        <!-- Navigation Buttons -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,*" Margin="0,8,0,16">
+            <Button Grid.Column="0" Text="&#x2190; Previous"
+                    Command="{Binding PreviousStepCommand}"
+                    IsVisible="{Binding IsFirstStep, Converter={StaticResource InverseBool}}"
+                    Style="{StaticResource SecondaryButton}"
+                    Margin="0,0,4,0" />
+
+            <Button Grid.Column="1" Text="Next &#x2192;"
+                    Command="{Binding NextStepCommand}"
+                    IsVisible="{Binding IsLastStep, Converter={StaticResource InverseBool}}"
+                    Style="{StaticResource PrimaryButton}"
+                    Margin="4,0,0,0" />
+
+            <Button Grid.Column="0" Grid.ColumnSpan="2"
+                    Text="&#x25B6; Start Playing!"
+                    Command="{Binding StartPlayingCommand}"
+                    IsVisible="{Binding IsLastStep}"
+                    Style="{StaticResource PrimaryButton}" />
+        </Grid>
+
+    </Grid>
+</views:MvxContentPage>

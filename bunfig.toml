@@ -1,3 +1,0 @@
-# bunfig.toml — bun package manager configuration
-# No trustedDependencies needed: only fsevents has a postinstall script,
-# and it is macOS-only/optional (bun skips it on Linux).

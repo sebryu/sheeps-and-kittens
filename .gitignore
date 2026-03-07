@@ -1,52 +1,47 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Build results
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
 
-# dependencies
-node_modules/
+# NuGet
+*.nupkg
+**/packages/*
+*.nuget.props
+*.nuget.targets
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vspscc
+*.vssscc
 
-# Native
-.kotlin/
-*.orig.*
+# Rider
+.idea/
+
+# macOS
+.DS_Store
+
+# Keys and credentials
+*.pem
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-bun-error.log
-
-# npm lockfile (project uses bun)
-package-lock.json
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
 .env*.local
 
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
-
-# Maestro
-maestro-report.xml
-
-# Build artifacts (e2e)
+# Build artifacts
 *.apk
+*.ipa
 *.tar.gz
+
+# Test results
+TestResults/
+*.trx
